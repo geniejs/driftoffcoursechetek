@@ -1,6 +1,5 @@
 import { PropsWithChildren, ReactElement, useCallback, useEffect } from 'react';
-import { useState } from 'react';
-import { Dialog } from '@headlessui/react';
+import { useState } from "react";
 import type { Post } from '@prisma/client';
 import { DocumentRenderer } from '@keystone-6/document-renderer';
 import classNames from 'classnames';

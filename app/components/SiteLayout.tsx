@@ -13,9 +13,9 @@ function SiteLayout({ children }: PropsWithChildren<{}>): ReactElement {
 	});
 
 	const className = classNames(
-    "remix-app__header mx-auto sticky top-0 z-30 flex h-16 w-full justify-center bg-opacity-90 backdrop-blur transition-all duration-200",
+    "remix-app__header mx-auto sticky top-0 z-30 flex h-16 w-full justify-center bg-opacity-90 backdrop-blur transition-all duration-200 text-primary-content",
     {
-      "bg-primary shadow-sm text-primary-content": scroll,
+      "bg-primary shadow-sm": scroll,
     }
   );
     return (
