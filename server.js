@@ -8,10 +8,9 @@ const handleRequest = createPagesFunctionHandler({
 });
 
 export async function onRequest(context) {
-  console.log('context', context)
   const cache = requestCache;
   const request = context.request;
-    let response = await cache.match(request);
+  let response = await cache.match(request);
   if (!response) {
     response = await handleRequest(context);
     if (process.env.NODE_ENV === 'development') {
@@ -22,15 +21,15 @@ export async function onRequest(context) {
     allowCache =
       allowCache &&
       (url.pathname.length <= 1 || url.pathname.endsWith('availability'));
-    let headers = {};
+    //console.log('request', url.toString());
     if (allowCache) {
-      headers = { 'cache-control': 'public, max-age=604800' };
-    }
-    response = new Response(response.body, { ...response, headers });
-    if (allowCache) {
+      //console.log('allowCache true', allowCache)
+      response.headers.set('cache-control', 'public, max-age=604800');
       cache.put(request, response.clone())
+    } else {
+      //console.log('allowCache false', allowCache )
     }
   }
-  
+  //console.log('-----------------------------------------------')
   return response;
 }
