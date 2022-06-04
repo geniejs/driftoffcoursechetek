@@ -2300,18 +2300,9 @@ body[dir="rtl"] .checkbox:checked,
   background-repeat: no-repeat;
 }
 
-.text-center {
-  text-align: center;
-}
-
 .text-lg {
   font-size: 1.125rem;
   line-height: 1.75rem;
-}
-
-.text-2xl {
-  font-size: 1.5rem;
-  line-height: 2rem;
 }
 
 .text-xl {
@@ -2322,14 +2313,6 @@ body[dir="rtl"] .checkbox:checked,
 .text-4xl {
   font-size: 2.25rem;
   line-height: 2.5rem;
-}
-
-.font-bold {
-  font-weight: 700;
-}
-
-.uppercase {
-  text-transform: uppercase;
 }
 
 .normal-case {

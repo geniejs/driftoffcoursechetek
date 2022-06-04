@@ -1,19 +1,20 @@
 
 import type { CarouselImage } from '~/components/Carousel';
 import { getDB } from '~/lib/db.server';
+import type { PrismaClient } from "@prisma/client";
+
 
 export const getImages = async (): Promise<CarouselImage[]> => {
 	const response = (await getDB().reservableImage.findMany()) as CarouselImage[];
 	return response;
 };
-export const getImage = async (id?: string): Promise<CarouselImage> => {
-	// const response = (await getDB().reservableImage.findUnique({
-	// 	where: {
-	// 		id: id,
-	// 	},
-	// })) as CarouselImage;
-
-	return homeImage;
+export const getImage = async (db?: PrismaClient, id?: string): Promise<CarouselImage> => {
+	const response = db ? await db.reservableImage.findUnique({
+		where: {
+			id: id,
+		},
+	}) as CarouselImage : homeImage;
+	return response;
 };
 
 const homeImage =  {
