@@ -33,7 +33,7 @@ export default function PostComp({
       {post.status === "published" ? (
         <div
           className={classNames({
-            "card bg-primary text-primary-content shadow-xl": true,
+            "card bg-base-100 shadow-xl": true,
             "lg:card-side": image,
           })}
         >

@@ -20,9 +20,6 @@ export default function Welcome() {
   const data = useLoaderData<{ posts: Post[]; logo: CarouselImage }>() || [];
   return (
     <div className="flex min-h-screen flex-col gap-4">
-      <p className="text-center text-2xl font-bold uppercase">
-        Drift Off Course
-      </p>
       {data.posts.map((post, i) => (
         <PostComp
           key={i}
