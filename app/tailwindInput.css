@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.disabled-box {
+	color: hsl(var(--bc) / .3) ;
+	background: repeating-linear-gradient(  45deg,  hsl(var(--b1)),  hsl(var(--b1)) 10px,  hsl(var(--b3)) 10px, hsl(var(--b3)) 20px);
+}

@@ -1,0 +1,361 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["dataProxy"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id          String          @id @default(cuid())
+  title       String          @default("")
+  status      PostStatusType?
+  publishDate DateTime?
+  authorId    String?         @map("author")
+  content     Json            @default("[{\"type\": \"paragraph\", \"children\": [{\"text\": \"\"}]}]")
+  page        String?
+  author      User?           @relation("Post_author", fields: [authorId], references: [id])
+
+  @@index([authorId])
+}
+
+model User {
+  id                          String         @id @default(cuid())
+  name                        String         @default("")
+  email                       String         @unique @default("")
+  firebaseId                  String         @unique @default("")
+  lastUpdated                 DateTime?      @updatedAt
+  updatedAt                   DateTime?      @updatedAt
+  createdAt                   DateTime?      @default(now())
+  updatedById                 String?        @map("updatedBy")
+  createdById                 String?        @map("createdBy")
+  createdBy                   User?          @relation("User_createdBy", fields: [createdById], references: [id])
+  updatedBy                   User?          @relation("User_updatedBy", fields: [updatedById], references: [id])
+  phoneNumbers                PhoneNumber[]  @relation("PhoneNumber_user")
+  posts                       Post[]         @relation("Post_author")
+  from_PurchaseUnit_createdBy PurchaseUnit[] @relation("PurchaseUnit_createdBy")
+  from_PurchaseUnit_updatedBy PurchaseUnit[] @relation("PurchaseUnit_updatedBy")
+  from_Receipt_createdBy      Receipt[]      @relation("Receipt_createdBy")
+  from_Receipt_updatedBy      Receipt[]      @relation("Receipt_updatedBy")
+  from_Reservable_createdBy   Reservable[]   @relation("Reservable_createdBy")
+  from_Reservable_updatedBy   Reservable[]   @relation("Reservable_updatedBy")
+  from_Reservation_createdBy  Reservation[]  @relation("Reservation_createdBy")
+  from_Reservation_updatedBy  Reservation[]  @relation("Reservation_updatedBy")
+  reservations                Reservation[]  @relation("Reservation_user")
+  from_User_createdBy         User[]         @relation("User_createdBy")
+  from_User_updatedBy         User[]         @relation("User_updatedBy")
+  roles                       Role[]         @relation("Role_users")
+
+  @@index([updatedById])
+  @@index([createdById])
+}
+
+model PhoneNumber {
+  id     String  @id @default(cuid())
+  userId String? @map("user")
+  type   String?
+  value  String  @unique @default("")
+  user   User?   @relation("PhoneNumber_user", fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model Role {
+  id    String @id @default(cuid())
+  value String @default("")
+  users User[] @relation("Role_users")
+}
+
+model Address {
+  id                                    String                     @id @default(cuid())
+  address                               String                     @default("")
+  city                                  String                     @default("")
+  state                                 AddressStateType?
+  zipCode                               String                     @default("")
+  latitude                              String                     @default("")
+  longitude                             String                     @default("")
+  from_ReservablePickupLocation_address ReservablePickupLocation[] @relation("ReservablePickupLocation_address")
+}
+
+model Reservable {
+  id                  String                          @id @default(cuid())
+  name                String                          @default("")
+  make                String                          @default("")
+  model               String                          @default("")
+  description         Json                            @default("[{\"type\": \"paragraph\", \"children\": [{\"text\": \"\"}]}]")
+  pickupId            String?                         @map("pickup")
+  cancellationCostId  String?                         @map("cancellationCost")
+  updatedAt           DateTime?                       @updatedAt
+  createdAt           DateTime?                       @default(now())
+  updatedById         String?                         @map("updatedBy")
+  createdById         String?                         @map("createdBy")
+  reservationNote     Json                            @default("[{\"type\": \"paragraph\", \"children\": [{\"text\": \"\"}]}]")
+  occupancyPersons    Int?
+  occupancyWeight     Int?
+  tax                 Float?
+  isActive            Boolean                         @default(false)
+  cancellationCost    ReservableCancellationCost?     @relation("Reservable_cancellationCost", fields: [cancellationCostId], references: [id])
+  createdBy           User?                           @relation("Reservable_createdBy", fields: [createdById], references: [id])
+  pickup              ReservablePickupLocation?       @relation("Reservable_pickup", fields: [pickupId], references: [id])
+  updatedBy           User?                           @relation("Reservable_updatedBy", fields: [updatedById], references: [id])
+  reservations        Reservation[]                   @relation("Reservation_reservable")
+  availabilityExclude ReservableAvailabilityExclude[] @relation("Reservable_availabilityExclude")
+  availabilityInclude ReservableAvailabilityInclude[] @relation("Reservable_availabilityInclude")
+  deposit             ReservableDeposit[]             @relation("Reservable_deposit")
+  features            ReservableFeature[]             @relation("Reservable_features")
+  files               ReservableFile[]                @relation("Reservable_files")
+  images              ReservableImage[]               @relation("Reservable_images")
+  priceAdjustment     ReservablePriceAdjustment[]     @relation("Reservable_priceAdjustment")
+  tags                ReservableTag[]                 @relation("Reservable_tags")
+  terms               ReservableTerm[]                @relation("Reservable_terms")
+
+  @@index([pickupId])
+  @@index([cancellationCostId])
+  @@index([updatedById])
+  @@index([createdById])
+}
+
+model ReservableTag {
+  id          String       @id @default(cuid())
+  value       String       @default("")
+  reservables Reservable[] @relation("Reservable_tags")
+}
+
+model ReservableFeature {
+  id          String       @id @default(cuid())
+  value       String       @default("")
+  key         String       @default("")
+  reservables Reservable[] @relation("Reservable_features")
+}
+
+model ReservablePickupLocation {
+  id          String       @id @default(cuid())
+  name        String       @default("")
+  addressId   String?      @map("address")
+  address     Address?     @relation("ReservablePickupLocation_address", fields: [addressId], references: [id])
+  reservables Reservable[] @relation("Reservable_pickup")
+
+  @@index([addressId])
+}
+
+model ReservableCancellationCost {
+  id          String       @id @default(cuid())
+  cost        Float?
+  isPercent   Boolean      @default(false)
+  reservables Reservable[] @relation("Reservable_cancellationCost")
+}
+
+model ReservableImage {
+  id                     String       @id @default(cuid())
+  name                   String       @default("")
+  alt                    String       @default("")
+  image_filesize         Int?
+  image_extension        String?
+  image_width            Int?
+  image_height           Int?
+  image_id               String?
+  image_sizesMeta        Json?
+  from_Reservable_images Reservable[] @relation("Reservable_images")
+}
+
+model ReservableFile {
+  id                    String       @id @default(cuid())
+  name                  String       @default("")
+  file_filename         String?
+  file_filesize         Int?
+  from_Reservable_files Reservable[] @relation("Reservable_files")
+}
+
+model ReservableAvailabilityExclude {
+  id                                  String       @id @default(cuid())
+  startDate                           DateTime
+  endDate                             DateTime
+  from_Reservable_availabilityExclude Reservable[] @relation("Reservable_availabilityExclude")
+
+  @@index([startDate])
+  @@index([endDate])
+}
+
+model ReservablePriceAdjustment {
+  id                                                 String                          @id @default(cuid())
+  sun                                                Boolean                         @default(false)
+  mon                                                Boolean                         @default(false)
+  tue                                                Boolean                         @default(false)
+  wed                                                Boolean                         @default(false)
+  thu                                                Boolean                         @default(false)
+  fri                                                Boolean                         @default(false)
+  sat                                                Boolean                         @default(false)
+  adjustment                                         Float?
+  from_ReservableAvailabilityInclude_priceAdjustment ReservableAvailabilityInclude[] @relation("ReservableAvailabilityInclude_priceAdjustment")
+  from_Reservable_priceAdjustment                    Reservable[]                    @relation("Reservable_priceAdjustment")
+}
+
+model ReservableDeposit {
+  id                        String         @id @default(cuid())
+  name                      String         @default("")
+  description               Json           @default("[{\"type\": \"paragraph\", \"children\": [{\"text\": \"\"}]}]")
+  cost                      Float?
+  from_PurchaseUnit_deposit PurchaseUnit[] @relation("PurchaseUnit_deposit")
+  from_Reservable_deposit   Reservable[]   @relation("Reservable_deposit")
+}
+
+model PurchaseUnit {
+  id                         String             @id @default(cuid())
+  referenceId                String             @default("")
+  paypalId                   String             @default("")
+  status                     String             @default("")
+  amount                     String             @default("")
+  depositId                  String?            @map("deposit")
+  updatedAt                  DateTime?          @updatedAt
+  createdAt                  DateTime?          @default(now())
+  updatedById                String?            @map("updatedBy")
+  createdById                String?            @map("createdBy")
+  createdBy                  User?              @relation("PurchaseUnit_createdBy", fields: [createdById], references: [id])
+  deposit                    ReservableDeposit? @relation("PurchaseUnit_deposit", fields: [depositId], references: [id])
+  updatedBy                  User?              @relation("PurchaseUnit_updatedBy", fields: [updatedById], references: [id])
+  from_Receipt_purchaseUnits Receipt[]          @relation("Receipt_purchaseUnits")
+
+  @@index([depositId])
+  @@index([updatedById])
+  @@index([createdById])
+}
+
+model ReservableTerm {
+  id                    String       @id @default(cuid())
+  name                  String       @default("")
+  description           Json         @default("[{\"type\": \"paragraph\", \"children\": [{\"text\": \"\"}]}]")
+  from_Reservable_terms Reservable[] @relation("Reservable_terms")
+}
+
+model ReservableAvailabilityInclude {
+  id                                  String                      @id @default(cuid())
+  startDate                           DateTime
+  endDate                             DateTime
+  cost                                Float?
+  priceAdjustment                     ReservablePriceAdjustment[] @relation("ReservableAvailabilityInclude_priceAdjustment")
+  from_Reservable_availabilityInclude Reservable[]                @relation("Reservable_availabilityInclude")
+
+  @@index([startDate])
+  @@index([endDate])
+}
+
+model Reservation {
+  id           String      @id @default(cuid())
+  userId       String?     @map("user")
+  reservableId String?     @map("reservable")
+  startDate    DateTime
+  endDate      DateTime?
+  totalCost    Float?
+  updatedAt    DateTime?   @updatedAt
+  createdAt    DateTime?   @default(now())
+  updatedById  String?     @map("updatedBy")
+  createdById  String?     @map("createdBy")
+  createdBy    User?       @relation("Reservation_createdBy", fields: [createdById], references: [id])
+  reservable   Reservable? @relation("Reservation_reservable", fields: [reservableId], references: [id])
+  updatedBy    User?       @relation("Reservation_updatedBy", fields: [updatedById], references: [id])
+  user         User?       @relation("Reservation_user", fields: [userId], references: [id])
+  receipt      Receipt?    @relation("Receipt_reservation")
+
+  @@index([userId])
+  @@index([reservableId])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([updatedById])
+  @@index([createdById])
+}
+
+model Receipt {
+  id              String         @id @default(cuid())
+  totalCost       Float?
+  updatedAt       DateTime?      @updatedAt
+  createdAt       DateTime?      @default(now())
+  updatedById     String?        @map("updatedBy")
+  createdById     String?        @map("createdBy")
+  depositCost     Float?
+  paypalId        String         @default("")
+  paypalResponse  Json?
+  reservationId   String?        @unique @map("reservation")
+  reservationCost Float?
+  taxCost         Float?
+  amountPaid      Float?
+  status          String         @default("")
+  createdBy       User?          @relation("Receipt_createdBy", fields: [createdById], references: [id])
+  reservation     Reservation?   @relation("Receipt_reservation", fields: [reservationId], references: [id])
+  updatedBy       User?          @relation("Receipt_updatedBy", fields: [updatedById], references: [id])
+  purchaseUnits   PurchaseUnit[] @relation("Receipt_purchaseUnits")
+
+  @@index([updatedById])
+  @@index([createdById])
+}
+
+enum PostStatusType {
+  draft
+  published
+}
+
+enum AddressStateType {
+  AL
+  AK
+  AS
+  AZ
+  AR
+  CA
+  CO
+  CT
+  DE
+  DC
+  FM
+  FL
+  GA
+  GU
+  HI
+  ID
+  IL
+  IN
+  IA
+  KS
+  KY
+  LA
+  ME
+  MH
+  MD
+  MA
+  MI
+  MN
+  MS
+  MO
+  MT
+  NE
+  NV
+  NH
+  NJ
+  NM
+  NY
+  NC
+  ND
+  MP
+  OH
+  OK
+  OR
+  PW
+  PA
+  PR
+  RI
+  SC
+  SD
+  TN
+  TX
+  UT
+  VT
+  VI
+  VA
+  WA
+  WV
+  WI
+  WY
+  AA
+  AE
+  AP
+}

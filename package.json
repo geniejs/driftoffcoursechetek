@@ -2,11 +2,15 @@
   "private": true,
   "sideEffects": false,
   "scripts": {
-    "build": "remix build",
-    "dev:remix": "remix watch",
-    "dev:wrangler": "cross-env NODE_ENV=development wrangler pages dev ./public",
-    "dev": "remix build && run-p dev:*",
-    "start": "cross-env NODE_ENV=production npm run dev:wrangler"
+    "build": "cross-env NODE_ENV=production run-s build:*",
+    "build:prisma": "PRISMA_CLIENT_ENGINE_TYPE=dataproxy prisma generate",
+    "build:tailwind": "tailwindcss -i ./app/tailwindInput.css -o ./app/tailwind.css",
+    "build:remix": "remix build",
+    "dev": "pm2-dev ./pm2.config.js",
+    "update": "run-p update:** && npm i",
+    "update:prisma:run": "npm i @prisma/client @prisma/generator-helper",
+    "update:prisma:dev": "npm i --save-dev prisma prettier-plugin-prisma",
+    "update:typescript-eslint": "npm i --save-dev @typescript-eslint/eslint-plugin @typescript-eslint/parser"
   },
   "dependencies": {
     "@remix-run/cloudflare": "^1.5.1",
@@ -14,7 +18,20 @@
     "@remix-run/react": "^1.5.1",
     "cross-env": "^7.0.3",
     "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react-dom": "^17.0.2",
+    "@prisma/client": "^3.14.0",
+    "@prisma/generator-helper": "^3.14.0",
+    "@theme-toggles/react": "^4.1.0",
+    "array.prototype.groupby": "^1.1.0",
+    "classnames": "^2.3.1",
+    "cookie": "^0.5.0",
+    "dotenv": "^16.0.1",
+    "nanoid": "^3.3.4",
+    "pm2": "^5.2.0",
+    "postcss": "^8.4.14",
+    "react-icons": "^4.4.0",
+    "react-loading-icons": "^1.1.0",
+    "tailwindcss": "^3.0.24"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^3.10.0",
@@ -25,7 +42,20 @@
     "eslint": "^8.15.0",
     "npm-run-all": "^4.1.5",
     "typescript": "^4.6.4",
-    "wrangler": "beta"
+    "wrangler": "beta",
+    "prisma": "^3.7.0",
+    "@tailwindcss/aspect-ratio": "^0.4.0",
+    "@tailwindcss/line-clamp": "^0.4.0",
+    "@tailwindcss/typography": "^0.5.2",
+    "@types/grecaptcha": "^3.0.4",
+    "@types/paypal__checkout-server-sdk": "^1.0.4",
+    "@types/validator": "^13.7.2",
+    "@typescript-eslint/eslint-plugin": "^5.27.0",
+    "@typescript-eslint/parser": "^5.27.0",
+    "autoprefixer": "^10.4.7",
+    "daisyui": "^2.15.2",
+    "husky": "^8.0.1",
+    "lint-staged": "^13.0.0"
   },
   "engines": {
     "node": ">=14"
