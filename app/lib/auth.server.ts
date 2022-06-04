@@ -1,6 +1,4 @@
-import type { UserRecord, DecodedIdToken } from 'firebase-admin/auth';
-import { getAuth } from 'firebase-admin/auth';
-import { getFirebaseAdmin } from './firebase/firebase.server';
+
 import type {
 	Prisma,
 	User,
@@ -10,19 +8,18 @@ import { getDB } from '~/lib/db.server';
 
 import * as cookie from 'cookie';
 import { nanoid } from 'nanoid';
-import { firebaseIdCookieName } from '~/config';
+import { cookieName } from '~/config';
 export const getDecodedToken = async (
 	request: any
-): Promise<DecodedIdToken | null> => {
-	getFirebaseAdmin();
+): Promise<any | null> => {
 	const cookieHeader = request.headers.get('Cookie');
 	const token = cookieHeader
-		? cookie.parse(cookieHeader)[firebaseIdCookieName]
+		? cookie.parse(cookieHeader)[cookieName]
 		: null;
 
 	let decodedToken = null;
 	try {
-		decodedToken = token ? await getAuth().verifyIdToken(token) : null;
+		decodedToken = token ? null : null;
 	} catch (e) {
 		console.error('error decoding token', e);
 	}
@@ -33,7 +30,7 @@ export const getDecodedToken = async (
 export const isAuthenticated = async (
 	request: any,
 	validateAndReturnUser: boolean = false
-): Promise<{ user: UserRecord | null } | any> => {
+): Promise<{ user: any | null } | any> => {
 	let authenticated = false;
 	const decodedToken = await getDecodedToken(request);
 	authenticated = decodedToken ? true : false;
@@ -53,14 +50,13 @@ export type UserWithReservations =
 	  })
 	| null;
 export const getUserByToken = async (
-	decodedToken: DecodedIdToken | null,
+	decodedToken: any | null,
 	updateUser = false
 ): Promise<{
 	user?: UserWithReservations | null;
 	error?: any;
 	created: boolean;
 }> => {
-	getFirebaseAdmin();
 	let created = false;
 	let user: UserWithReservations | null = null;
 	let error = null;
@@ -86,9 +82,9 @@ export const getUserByToken = async (
 		}
 
 		if (operation) {
-			let userRecord: UserRecord | null = null;
+			let userRecord: any | null = null;
 			try {
-				userRecord = await getAuth().getUser(firebaseId);
+				userRecord = null;
 			} catch (e) {
 				error = e;
 			}

@@ -1,10 +1,11 @@
-import type { User } from '@firebase/auth';
-import { firebaseIdCookieName } from '~/config';
-import { ImageSizeMeta } from './components/Carousel';
-import { getReservables, ReservableResponse } from './lib/reservables.db.server';
+import { cookieName } from '~/config';
+import type { ImageSizeMeta } from './components/Carousel';
+import type { ReservableResponse } from './lib/reservables.db.server';
+import { getReservables } from './lib/reservables.db.server';
+import type {
+	ReservationsResponse} from './lib/reservations.db.server';
 import {
-	getReservations,
-	ReservationsResponse,
+	getReservations
 } from './lib/reservations.db.server';
 
 import type { FetcherWithComponents } from './lib/types';
@@ -15,25 +16,25 @@ export const isDev =
 	process.env.NODE_ENV === 'development' ||
 	process.env.NODE_ENV !== 'production';
 export const login = async (
-	user: User,
+	user: any,
 	fetcher: FetcherWithComponents<any>
 ) => {
 	try {
 		const idToken = await user.getIdToken(true);
 		console.log('idToken', idToken)
-		setCookie(firebaseIdCookieName, idToken, 14);
+		setCookie(cookieName, idToken, 14);
 		fetcher.submit({}, { method: 'post', action: '/account' });
 	} catch {
-		setCookie(firebaseIdCookieName, '', 0);
+		setCookie(cookieName, '', 0);
 	}
 };
 
 export const logout = async (fetcher: FetcherWithComponents<any>) => {
 	try {
-		setCookie(firebaseIdCookieName, '', 0);
+		setCookie(cookieName, '', 0);
 		fetcher.submit({}, { method: 'post', action: '/logout' });
 	} catch {
-		setCookie(firebaseIdCookieName, '', 0);
+		setCookie(cookieName, '', 0);
 	}
 };
 

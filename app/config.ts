@@ -1,1 +1,1 @@
-export const firebaseIdCookieName = 'fb:token';
+export const cookieName = 'fb:token';
