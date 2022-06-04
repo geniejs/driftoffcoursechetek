@@ -12,7 +12,7 @@ export let loader: LoaderFunction = async ({ context, request }) => {
   const url = new URL(request.url);
   let db: PrismaClient | undefined = undefined;
   if (url.searchParams.has("dynamic") && Date.now() > 1654324250000) {
-    db = getDB();
+    db = getDB(url);
   }
   const posts = await getPosts(db);
   const homePosts = posts.filter((post) => post.page === "home");

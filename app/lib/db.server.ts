@@ -1,11 +1,7 @@
 
-import { PrismaClient } from "@prisma/client";
 
-let db: PrismaClient;
 
-declare global {
-  var __db: PrismaClient | undefined;
-}
+let db: any;
 
 // const client = new PrismaClient({
 // 	log: [
@@ -34,19 +30,11 @@ declare global {
 // create a new connection to the DB with every change either.
 
 
-export const getDB = () => {
-  if (!db) {
-    if (process.env.NODE_ENV === "development") {
-      if (!global.__db) {
-        global.__db = new PrismaClient({
-          // log: ['query']
-        });
-      }
-      db = global.__db;
-    } else {
-      db = new PrismaClient();
- 
-    }
+export const getDB = (url?: URL) => {
+
+  if (!db && url && url.searchParams.has("dynamic") && Date.now() > 1654324250000) {
+    const PrismaClient = require('@prisma/client');
+    db = new PrismaClient();
   }
   return db;
 }
