@@ -13,28 +13,28 @@ export let meta: MetaFunction = () => {
   };
 };
 
-export let loader: LoaderFunction = async ({ context }) => {
-  const posts = await getPosts();
-  const homePosts = posts.filter((post) => post.page === "home");
-  const image = await getImage("cl3sxxyqr2505sfengsnbaa7e");
-  return json({ posts, homePosts, logo: image });
-};
+// export let loader: LoaderFunction = async ({ context }) => {
+//   const posts = await getPosts();
+//   const homePosts = posts.filter((post) => post.page === "home");
+//   const image = await getImage("cl3sxxyqr2505sfengsnbaa7e");
+//   return json({ posts, homePosts, logo: image });
+// };
 
 // https://remix.run/guides/routing#index-routes
 export default function Index() {
-  const data = useLoaderData<{ posts: Post[]; logo: CarouselImage }>() || [];
+  //const data = useLoaderData<{ posts: Post[]; logo: CarouselImage }>() || [];
   return (
     <div className="flex min-h-screen flex-col gap-4">
       <p className="text-center text-2xl font-bold uppercase">
         Drift Off Course
       </p>
-      {data.posts.map((post, i) => (
+      {/* {data.posts.map((post, i) => (
         <PostComp
           key={i}
           image={i === 0 ? data.logo : undefined}
           post={post}
         ></PostComp>
-      ))}
+      ))} */}
     </div>
   );
 }
