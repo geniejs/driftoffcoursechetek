@@ -19,7 +19,7 @@ export default function Welcome() {
   const data = useLoaderData<{ posts: Post[]; logo: CarouselImage }>() || [];
   return (
     <div className="flex min-h-screen flex-col gap-4">
-      <p className="text-center text-2xl font-bold uppercase">
+      {/* <p className="text-center text-2xl font-bold uppercase">
         Drift Off Course
       </p>
       {data.posts.map((post, i) => (
@@ -28,7 +28,7 @@ export default function Welcome() {
           image={i === 0 ? data.logo : undefined}
           post={post}
         ></PostComp>
-      ))}
+      ))} */}
     </div>
   );
 }
