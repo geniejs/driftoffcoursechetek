@@ -2275,9 +2275,9 @@ body[dir="rtl"] .checkbox:checked,
   background-color: hsl(var(--p) / var(--tw-bg-opacity));
 }
 
-.bg-base-100 {
+.bg-accent {
   --tw-bg-opacity: 1;
-  background-color: hsl(var(--b1) / var(--tw-bg-opacity));
+  background-color: hsl(var(--a) / var(--tw-bg-opacity));
 }
 
 .bg-opacity-90 {
@@ -2322,6 +2322,11 @@ body[dir="rtl"] .checkbox:checked,
 .text-primary-content {
   --tw-text-opacity: 1;
   color: hsl(var(--pc) / var(--tw-text-opacity));
+}
+
+.text-accent-content {
+  --tw-text-opacity: 1;
+  color: hsl(var(--ac) / var(--tw-text-opacity));
 }
 
 .shadow-xl {

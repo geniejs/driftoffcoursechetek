@@ -2,21 +2,15 @@ import type { LoaderFunction, MetaFunction } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { getPosts } from "~/lib/posts.db.server";
-import type { Post, PrismaClient } from "@prisma/client";
+import type { Post } from "@prisma/client";
 import PostComp from "~/components/Post";
 import { getImage } from "~/lib/images.db.server";
 import type { CarouselImage } from "~/components/Carousel";
-import { getDB } from "~/lib/db.server";
 
 export let loader: LoaderFunction = async ({ context, request }) => {
-  const url = new URL(request.url);
-  let db: PrismaClient | undefined = undefined;
-  if (url.searchParams.has("dynamic")) {
-    db = getDB(url);
-  }
-  const posts = await getPosts(db);
+  const posts = await getPosts();
   const homePosts = posts.filter((post) => post.page === "home");
-  const image = await getImage(db, "cl3sxxyqr2505sfengsnbaa7e");
+  const image = await getImage("cl3sxxyqr2505sfengsnbaa7e");
   return json({ posts, homePosts, logo: image });
 };
 
