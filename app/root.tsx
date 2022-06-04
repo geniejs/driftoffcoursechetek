@@ -43,6 +43,11 @@ export let links: LinksFunction = () => {
       rel: "stylesheet",
       href: innerMoonToggle,
     },
+    {
+      rel: "icon",
+      type: "image/x-icon",
+      href: "/favicon.png",
+    },
   ];
 };
 

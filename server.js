@@ -18,9 +18,10 @@ export async function onRequest(context) {
     }
     const url = new URL(request.url);
     let allowCache = url.search && url.search.length < 2;
-    allowCache =
-      allowCache &&
-      (url.pathname.length <= 1 || url.pathname.endsWith('availability'));
+    allowCache = allowCache && url.pathname.length <= 1;
+    allowCache = allowCache || url.pathname.includes('/images/');
+    allowCache = allowCache || url.pathname.includes('favicon');
+        // url.pathname.endsWith('availability'));
     //console.log('request', url.toString());
     if (allowCache) {
       //console.log('allowCache true', allowCache)
