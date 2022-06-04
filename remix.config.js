@@ -28,6 +28,8 @@ withEsbuildOverride((option, { isServer, isDev }) => {
 				include: /.*\.js$/,
 				values: {
 					'xhr.overrideMimeType': 'xhr && xhr.overrideMimeType',
+					'function checkTypeSupport': 'function checkTypeSupport(type){return false;} function a',
+					'checkTypeSupport': 'true || checkTypeSupport',
 					't:void 0':'t:""'
 				},
 			}),
