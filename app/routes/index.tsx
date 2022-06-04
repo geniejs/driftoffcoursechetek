@@ -1,11 +1,12 @@
-import type { LoaderFunction, MetaFunction } from "@remix-run/cloudflare";
+import { LoaderFunction, MetaFunction } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, useNavigate } from "@remix-run/react";
 import { getPosts } from "~/lib/posts.db.server";
 import type { Post } from "@prisma/client";
 import PostComp from "~/components/Post";
 import { getImage } from "~/lib/images.db.server";
 import type { CarouselImage } from "~/components/Carousel";
+import { useEffect } from "react";
 export let meta: MetaFunction = () => {
   return {
     title: "Drift Off Course",
@@ -22,7 +23,13 @@ export let meta: MetaFunction = () => {
 
 // https://remix.run/guides/routing#index-routes
 export default function Index() {
+  let navigate = useNavigate();
+
   //const data = useLoaderData<{ posts: Post[]; logo: CarouselImage }>() || [];
+  useEffect(() => {
+    navigate("/welcome", { replace: true });
+  }, [navigate]);
+
   return (
     <div className="flex min-h-screen flex-col gap-4">
       <p className="text-center text-2xl font-bold uppercase">
