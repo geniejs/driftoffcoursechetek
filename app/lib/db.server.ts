@@ -32,9 +32,10 @@ let db: any;
 
 export const getDB = (url?: URL) => {
 
-  if (!db && url && url.searchParams.has("dynamic") && Date.now() > 1654324250000) {
+  if (!db && url && url.searchParams.has("dynamic")) {
     const PrismaClient = require('@prisma/client');
-    db = new PrismaClient();
+    db = new PrismaClient.PrismaClient();
+    console.log('db', db)
   }
   return db;
 }

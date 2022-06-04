@@ -11,7 +11,7 @@ import { getDB } from "~/lib/db.server";
 export let loader: LoaderFunction = async ({ context, request }) => {
   const url = new URL(request.url);
   let db: PrismaClient | undefined = undefined;
-  if (url.searchParams.has("dynamic") && Date.now() > 1654324250000) {
+  if (url.searchParams.has("dynamic")) {
     db = getDB(url);
   }
   const posts = await getPosts(db);
