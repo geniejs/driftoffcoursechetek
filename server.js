@@ -26,7 +26,7 @@ export async function onRequest(context) {
     if (allowCache) {
       //console.log('allowCache true', allowCache)
       response.headers.set('cache-control', 'public, max-age=604800');
-      cache.put(request, response.clone())
+      context.waitUntil(cache.put(request, response.clone()));
     } else {
       //console.log('allowCache false', allowCache )
     }
