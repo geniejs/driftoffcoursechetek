@@ -205,7 +205,7 @@ export function CatchBoundary() {
 
 export function ErrorBoundary({ error }: { error: Error }) {
   getFirebaseClient();
-
+  console.error(error);
   return (
     <Document title="Error!">
       <Layout>
