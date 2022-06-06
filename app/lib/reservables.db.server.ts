@@ -3,6 +3,7 @@ import type {
 	ReservableDeposit,
 	ReservableTerm,
 	AddressStateType,
+	PrismaClient,
 } from '@prisma/client';
 import type { CarouselImage } from '~/components/Carousel';
 import type { DocumentRendererProps } from '@keystone-6/document-renderer';
@@ -157,8 +158,14 @@ const reservableInclude = {
 	},
 };
 
-export const getReservables = async (): Promise<ReservableResponse[]> => {
-	const response = (await getDB().reservable.findMany({
+export const getReservables = async (ids?: string[]): Promise<ReservableResponse[]> => {
+	const db = getDB() as PrismaClient;
+	const response = (await db.reservable.findMany({
+		where: ids? {
+			id: {
+				in: ids
+			}
+		}: undefined,
 		include: {
 			...reservableInclude,
 		},

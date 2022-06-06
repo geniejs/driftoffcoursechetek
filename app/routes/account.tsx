@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { getAuth, signInAnonymously } from "firebase/auth";
+import { useEffect } from "react";
 import type { ActionFunction, LoaderFunction } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import {
@@ -31,8 +33,7 @@ export let loader: LoaderFunction = async ({ request, context }) => {
 export default function Account() {
   let navigate = useNavigate();
   const { user } = useLoaderData<{ user?: User }>();
-  const authLoading = false;
-  const fbUser = null;
+  const [fbUser, authLoading] = useAuthState(getAuth());
   const fetcher = useFetcher();
   const [searchParams] = useSearchParams();
   useEffect(() => {
@@ -53,6 +54,8 @@ export default function Account() {
             replace: true,
           }
         );
+      } else if (!fbUser && !authLoading && allowAnon) {
+        await signInAnonymously(getAuth());
       }
     };
     setupAccount();

@@ -1,4 +1,6 @@
-
+import type { UserRecord, DecodedIdToken } from 'firebase-admin/auth';
+import { getAuth } from 'firebase-admin/auth';
+import { getFirebaseAdmin } from './firebase/firebase.server';
 import type {
 	Prisma,
 	User,
@@ -11,15 +13,15 @@ import { nanoid } from 'nanoid';
 import { cookieName } from '~/config';
 export const getDecodedToken = async (
 	request: any
-): Promise<any | null> => {
+): Promise<DecodedIdToken | null> => {
+	getFirebaseAdmin();
 	const cookieHeader = request.headers.get('Cookie');
 	const token = cookieHeader
 		? cookie.parse(cookieHeader)[cookieName]
 		: null;
-
 	let decodedToken = null;
 	try {
-		decodedToken = token ? null : null;
+		decodedToken = token ? await getAuth().verifyIdToken(token) : null;
 	} catch (e) {
 		console.error('error decoding token', e);
 	}
@@ -30,7 +32,7 @@ export const getDecodedToken = async (
 export const isAuthenticated = async (
 	request: any,
 	validateAndReturnUser: boolean = false
-): Promise<{ user: any | null } | any> => {
+): Promise<{ user: UserRecord | null } | any> => {
 	let authenticated = false;
 	const decodedToken = await getDecodedToken(request);
 	authenticated = decodedToken ? true : false;
@@ -50,13 +52,14 @@ export type UserWithReservations =
 	  })
 	| null;
 export const getUserByToken = async (
-	decodedToken: any | null,
+	decodedToken: DecodedIdToken | null,
 	updateUser = false
 ): Promise<{
 	user?: UserWithReservations | null;
 	error?: any;
 	created: boolean;
 }> => {
+	getFirebaseAdmin();
 	let created = false;
 	let user: UserWithReservations | null = null;
 	let error = null;
@@ -82,9 +85,9 @@ export const getUserByToken = async (
 		}
 
 		if (operation) {
-			let userRecord: any | null = null;
+			let userRecord: UserRecord | null = null;
 			try {
-				userRecord = null;
+				userRecord = await getAuth().getUser(firebaseId);
 			} catch (e) {
 				error = e;
 			}

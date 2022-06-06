@@ -1,61 +1,69 @@
 import type { LoaderFunction } from '@remix-run/cloudflare';
 import { redirect } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData, useSearchParams } from '@remix-run/react';
-import Product from '~/components/blocks/product';
-
-import type { ReservableResponse } from '~/lib/reservables.db.server';
-import { getReservable } from '~/lib/reservables.db.server';
+import { useLoaderData } from "@remix-run/react";
+import Product from "~/components/blocks/product";
 import {
-	getCancellationCost,
-	getDisplayDateRange,
-	normalizeDate,
-} from '~/utils';
-import { DocumentRenderer } from '@keystone-6/document-renderer';
-import { getUserByRequestToken } from '~/lib/auth.server';
-import type { ReservationResponse } from '~/lib/reservations.db.server';
-import { getReservation } from '~/lib/reservations.db.server';
-import ReservationBreakdown from '~/components/ReservationBreakdown';
-import Modal from '~/components/Modal';
-import { useEffect } from 'react';
-import { useMountEffect } from '~/lib/react/hooks';
+  getCancellationCost,
+  getDisplayDateRange,
+  normalizeDate,
+} from "~/utils";
+import { DocumentRenderer } from "@keystone-6/document-renderer";
+import { getUserByRequestToken } from "~/lib/auth.server";
+import ReservationBreakdown from "~/components/ReservationBreakdown";
+import Modal from "~/components/Modal";
+import { useMountEffect } from "~/lib/react/hooks";
+import type { ReservationResponse } from "~/lib/reservations.db.server";
+import { getReservationsWithDetails } from "~/lib/reservations.db.server";
+import type { ReservableResponse } from "~/lib/reservables.db.server";
+import { getReservables } from "~/lib/reservables.db.server";
 
 type BookingsData = {
-	reservations: ReservationResponse[];
-	reservables: Record<string, ReservableResponse>;
+  reservations: ReservationResponse[];
+  reservables: Record<string, ReservableResponse>;
 };
 
 export let loader: LoaderFunction = async ({ request }) => {
-	const { user } = await getUserByRequestToken(request);
-	console.log('user :>> ', user);
-	if (user) {
-		const reservablIds = Array.from(
-			new Set(
-				user.reservations.map((res) => res.reservableId).filter((id) => !!id)
-			)
-		) as string[];
-		const reservables = Object.fromEntries(
-			new Map(
-				await Promise.all(
-					reservablIds.map(
-						(id) =>
-							new Promise<[string, ReservableResponse]>(async (resolve) => {
-								resolve([id, await getReservable(id)]);
-							})
-					)
-				)
-			)
-		);
-		const reservations = await Promise.all(
-			user.reservations.map((res) => getReservation(res.id))
-		);
-		return json({
-			reservations,
-			reservables,
-		});
-	} else {
-		return redirect('/account?sendto=/account/bookings');
-	}
+  const { user } = await getUserByRequestToken(request);
+
+  if (user) {
+    const reservablIds = Array.from(
+      new Set(
+        user.reservations.map((res) => res.reservableId).filter((id) => !!id)
+      )
+    ) as string[];
+    const reservablesP = getReservables(reservablIds);
+    const reservationsP = getReservationsWithDetails(
+      user.reservations.map((res) => res.id)
+    );
+    let reservables: ReservableResponse[] | undefined = undefined;
+    let reservations: ReservationResponse[] | undefined = undefined;
+    try {
+      [reservables, reservations] = await Promise.all([
+        reservablesP,
+        reservationsP,
+      ]);
+    } catch (e) {
+      console.error(e);
+    }
+
+    if (!reservations || !reservables) {
+      throw new Error();
+    }
+    const reservablesMap = Object.fromEntries(
+      new Map(
+        reservables.map((r) => {
+          return [r.id, r];
+        })
+      )
+    );
+    return json({
+      reservations: reservations!,
+      reservables: reservablesMap,
+    } as BookingsData);
+  } else {
+    return redirect("/account?sendto=/account/bookings");
+  }
 };
 
 export default function Bookings() {

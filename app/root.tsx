@@ -1,5 +1,7 @@
 import type { MetaFunction } from "@remix-run/cloudflare";
 import type { LinksFunction } from "@remix-run/cloudflare";
+import firebaseStyles from "firebaseui/dist/firebaseui.css";
+import { getFirebaseClient } from "./lib/firebase/firebase";
 
 import {
   Links,
@@ -48,6 +50,7 @@ export let links: LinksFunction = () => {
       type: "image/x-icon",
       href: "/favicon.png",
     },
+    { rel: "stylesheet", href: firebaseStyles },
   ];
 };
 
@@ -58,6 +61,7 @@ export let meta: MetaFunction = () => {
   };
 };
 export default function App() {
+  getFirebaseClient();
   return (
     <Document>
       <Layout>
@@ -200,6 +204,8 @@ export function CatchBoundary() {
 }
 
 export function ErrorBoundary({ error }: { error: Error }) {
+  getFirebaseClient();
+
   return (
     <Document title="Error!">
       <Layout>
