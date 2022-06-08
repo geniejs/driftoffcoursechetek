@@ -8,6 +8,7 @@ import type { ReservableResponse } from '~/lib/reservables.db.server';
 import { getReservable } from '~/lib/reservables.db.server';
 import type { ReservationsResponse } from '~/lib/reservations.db.server';
 import { getReservations } from '~/lib/reservations.db.server';
+import { sendConfirmationEmail } from '~/emailHelper.server';
 export let meta: MetaFunction = () => {
 	return {
 		title: 'Drift Off Course',

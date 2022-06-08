@@ -38,32 +38,32 @@ export default function Menu() {
     </RootContext.Consumer>
   );
   return (
-    <nav className="navbar  max-w-7xl">
-      <div className="navbar-start">
-        <Link className="btn btn-ghost text-xl normal-case" to="/">
-          Home
-        </Link>
-      </div>
-      <div className="btn-group navbar-end flex gap-4">
-        {user ? (
-          <Link
-            className="group  btn rounded-lg bg-gradient-to-br from-primary to-primary-focus px-5 py-2.5 text-center text-sm font-medium text-primary-content outline outline-1 outline-primary-content hover:bg-gradient-to-r focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800"
-            to="/profile"
-          >
-            <IoPersonSharp /> &nbsp; {user.isAnonymous ? "Login" : "Profile"}
-          </Link>
-        ) : (
-          <Link
-            className="group  btn rounded-lg bg-gradient-to-br from-primary to-primary-focus px-5 py-2.5 text-center text-sm font-medium text-primary-content outline outline-1 outline-primary-content hover:bg-gradient-to-r focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800"
-            to="/login"
-          >
-            <IoLogInSharp /> &nbsp; Login
-          </Link>
-        )}
-        <div className="align-center flex place-items-center text-4xl">
-          {darkModeToggle}
-        </div>
-      </div>
-    </nav>
-  );
+		<nav className="navbar max-w-7xl">
+			<div className="navbar-start">
+				<Link className="btn btn-ghost text-xl normal-case" to="/">
+					Home
+				</Link>
+			</div>
+			<div className="btn-group navbar-end flex gap-4">
+				{user ? (
+					<Link
+						className="group  btn rounded-lg bg-gradient-to-br from-primary to-primary-focus px-5 py-2.5 text-center text-sm font-medium text-primary-content outline outline-1 outline-primary-content hover:bg-gradient-to-r focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800"
+						to="/profile"
+					>
+						<IoPersonSharp /> &nbsp; {user.isAnonymous ? 'Login' : 'Profile'}
+					</Link>
+				) : (
+					<Link
+						className="group  btn rounded-lg bg-gradient-to-br from-primary to-primary-focus px-5 py-2.5 text-center text-sm font-medium text-primary-content outline outline-1 outline-primary-content hover:bg-gradient-to-r focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800"
+						to="/login"
+					>
+						<IoLogInSharp /> &nbsp; Login
+					</Link>
+				)}
+				<div className="align-center flex place-items-center text-4xl">
+					{darkModeToggle}
+				</div>
+			</div>
+		</nav>
+	);
 }

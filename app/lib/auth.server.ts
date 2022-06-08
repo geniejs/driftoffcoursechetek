@@ -15,7 +15,7 @@ export const getDecodedToken = async (
 	request: any
 ): Promise<DecodedIdToken | null> => {
 	getFirebaseAdmin();
-	const cookieHeader = request.headers.get('Cookie');
+	const cookieHeader = request?.headers?.get('Cookie');
 	const token = cookieHeader
 		? cookie.parse(cookieHeader)[cookieName]
 		: null;

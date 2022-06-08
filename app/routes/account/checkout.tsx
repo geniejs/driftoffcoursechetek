@@ -35,14 +35,13 @@ export type CheckoutCreateResponse = {
 };
 
 export let action: ActionFunction = async ({ request, context }) => {
-	const { user } = await getUserByRequestToken(context.prismaRead, request);
+	const { user } = await getUserByRequestToken(request);
 
 	if (!user) return redirect('/login');
 
 	const data: CheckoutAction = await request.json();
 	if (data.action === 'create') {
 		const order = await createOrder(
-			context.prismaRead,
 			data.startDate,
 			data.endDate,
 			data.reservableId,
@@ -56,7 +55,7 @@ export let action: ActionFunction = async ({ request, context }) => {
 			return json({ error: 'error' });
 		}
 	} else if (data.action === 'approve' && data.orderID) {
-		const order = await captureOrder(context.prismaRead, data, user);
+		const order = await captureOrder(data, user);
 		return json(order);
 	}
 	return json('unknown request');

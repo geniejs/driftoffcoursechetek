@@ -69,7 +69,6 @@ export let loader: LoaderFunction = async ({ request }) => {
 export default function Bookings() {
 	let data = useLoaderData<BookingsData>();
 	useMountEffect(() => {
-		console.log('location.hash :>> ', location.hash);
 		if (location.hash) {
 			const div = document.querySelector(location.hash.toLowerCase());
 			if (div) {

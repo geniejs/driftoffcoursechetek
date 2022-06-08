@@ -1,9 +1,10 @@
 
+import { PrismaClient } from '@prisma/client/edge'
 
-let db: any;
+let db: PrismaClient;
 
 declare global {
-  var __db: any | undefined;
+  var __db: PrismaClient | undefined;
 }
 
 // const client = new PrismaClient({
@@ -37,14 +38,14 @@ export const getDB = () => {
   if (!db ) {
     if (process.env.NODE_ENV === "development") {
       if (!global.__db) {
-        const PrismaClient = require('@prisma/client');
-        global.__db = new PrismaClient.PrismaClient();
+        // const PrismaClient = require('@prisma/client');
+        global.__db = new PrismaClient();
       }
       db = global.__db;
     } else {
-      const PrismaClient = require('@prisma/client');
+      // const PrismaClient = require('@prisma/client');
 
-      db = new PrismaClient.PrismaClient();
+      db = new PrismaClient();
  
     }
   }

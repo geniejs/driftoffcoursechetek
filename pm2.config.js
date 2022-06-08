@@ -4,13 +4,12 @@ module.exports = {
 	apps: [
 		{
 			name: 'Prisma',
-			script: 'prisma generate',
+			script: 'prisma generate --data-proxy',
 			watch: ['./prisma'],
 			autorestart: false,
 			env: {
 				...process.env,
 				NODE_ENV: process.env.NODE_ENV ?? 'development',
-				PRISMA_CLIENT_ENGINE_TYPE: 'dataproxy',
 			},
 		},
 		{

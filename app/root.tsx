@@ -82,13 +82,14 @@ function Document({
 }) {
   const prefersDark =
     isClient && window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const [darkTheme, setDarkTheme] = useState(false);
+	const [darkTheme, setDarkTheme] = useState(false);
   const [theme, setTheme] = useState<string>();
 
   useEffect(() => {
     let storageTheme = localStorage.getItem("theme");
     if (!storageTheme) {
-      localStorage.setItem("theme", prefersDark ? "dark" : "light");
+      storageTheme = prefersDark ? 'dark' : 'light';
+			localStorage.setItem('theme', storageTheme);
     }
 
     setDarkTheme(storageTheme === "dark");

@@ -96,6 +96,9 @@ export default function Booking() {
 							availabilityResponse={data.availabilityResponse}
 							allCheckedCallback={areAllChecked}
 						/>
+						is avail: {data.availabilityResponse?.isAvail?.toString()}
+						<br />
+						instructions: {instructionsText}
 						{data.availabilityResponse.isAvail && instructionsText ? (
 							<div className=" relative ml-auto mt-4 inline-grid w-full place-items-center items-end pb-4 lg:w-1/2">
 								{!termsChecked ? (

@@ -15,21 +15,21 @@ export const sendConfirmationEmail = async (
 	to: string,
 	confirmationParams: ConfirmationParams
 ) => {
-	sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 	try {
+		sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
+
 		await sgMail.send({
 			to,
-			bcc: 'reservations@driftoffcoursechetek.com',
+			// bcc: 'reservations@driftoffcoursechetek.com',
 			from: 'reservations@em7084.driftoffcoursechetek.com',
 			replyTo: 'support@driftoffcoursechetek.com',
 			subject: 'Drift Off Course Chetek: Reservation Confirmed',
 			html: reservationConfirmation(confirmationParams),
 		});
 	} catch (e) {
-		console.error(JSON.stringify(e));
+		console.error('sendgrid', e);
 		return;
 	}
-	console.log('email sent');
 };
 
 export const reservationConfirmation = ({

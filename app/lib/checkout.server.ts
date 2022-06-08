@@ -23,7 +23,9 @@ export const getClient = () => {
 		environment = isDev
 			? new paypal.core.SandboxEnvironment(clientId, clientSecret)
 			: new paypal.core.LiveEnvironment(clientId, clientSecret);
+
 		client = new paypal.core.PayPalHttpClient(environment);
+
 	}
 	return client;
 };
@@ -51,7 +53,6 @@ export const createOrder = async (
 	let taxTotal = itemTotal * (availabilityByDate.tax || 0);
 	const client = getClient();
 	const request = new paypal.orders.OrdersCreateRequest();
-
 	const purchase_units: PurchaseUnitRequest[] = [
 		{
 			reference_id: 'reservation',
@@ -129,71 +130,77 @@ export const createOrder = async (
 			shipping_preference: 'NO_SHIPPING',
 		},
 	});
-	const response = await client.execute(request);
-	const startDateDate = normalizeDate(startDate);
-	const endDateDate = normalizeDate(endDate);
-
-	if (response.result) {
-		const successData: Prisma.ReservationCreateArgs = {
-			data: {
-				userId: user.id,
-				reservableId,
-				startDate: startDateDate?.toISOString() || '',
-				endDate: endDateDate?.toISOString() || '',
-				totalCost: parseFloat((itemTotal + taxTotal + depositTotal).toFixed(2)),
-				receipt: {
-					create: {
-						depositCost: parseFloat(depositTotal.toFixed(2)),
-						taxCost: parseFloat(taxTotal.toFixed(2)),
-						reservationCost: parseFloat(itemTotal.toFixed(2)),
-						totalCost: parseFloat(
-							(itemTotal + taxTotal + depositTotal).toFixed(2)
-						),
+	try {
+		const response = await client.execute(request);
+		const startDateDate = normalizeDate(startDate);
+		const endDateDate = normalizeDate(endDate);
+	
+		if (response.result) {
+			const successData: Prisma.ReservationCreateArgs = {
+				data: {
+					userId: user.id,
+					reservableId,
+					startDate: startDateDate?.toISOString() || '',
+					endDate: endDateDate?.toISOString() || '',
+					totalCost: parseFloat((itemTotal + taxTotal + depositTotal).toFixed(2)),
+					receipt: {
+						create: {
+							depositCost: parseFloat(depositTotal.toFixed(2)),
+							taxCost: parseFloat(taxTotal.toFixed(2)),
+							reservationCost: parseFloat(itemTotal.toFixed(2)),
+							totalCost: parseFloat(
+								(itemTotal + taxTotal + depositTotal).toFixed(2)
+							),
+						},
 					},
 				},
-			},
-		};
-		return {
-			order: response.result,
-			successData: {
-				...successData,
-				depositsById,
-				heroImgSrc: getImageUrl(
-					'',
-					reservable.images[0].image_sizesMeta.lg,
-					Math.max()
-				),
-				heroImgHref: `https://driftoffcoursechetek.com/availability/${reservable.id}`,
-				instructionsText: `${getDisplayDateRange(
-					startDateDate!,
-					endDateDate
-				)}<br/><br/>
-				<b style="color:#FFFFFF; text-decoration: underline;">Pickup Location</b></a><br/>
-				<span style="color:#FFFFFF;">
-				${reservable.pickup?.name}<br/>
-				${reservable.pickup?.address?.address}<br/>
-				${reservable.pickup?.address?.city}, ${reservable.pickup?.address?.state}  ${
-					reservable.pickup?.address?.zipCode
-				}<br/>
-				${
-					reservable.pickup?.address?.longitude &&
-					reservable.pickup?.address?.latitude &&
-					`${reservable.pickup?.address?.latitude} x ${reservable.pickup?.address?.longitude} <br/>`
-				}
-				<br/><br/>
-				${
-					reservable.occupancyPersons &&
-					`Max Occupancy (persons): ${reservable.occupancyPersons}<br/>`
-				}
-				${
-					reservable.occupancyWeight &&
-					`Max Occupancy (weight): ${reservable.occupancyWeight}lbs<br/>`
-				}
-				</span>
-				`,
-			},
-		};
+			};
+			return {
+				order: response.result,
+				successData: {
+					...successData,
+					depositsById,
+					heroImgSrc: getImageUrl(
+						'',
+						reservable.images[0].image_sizesMeta.lg,
+						Math.max()
+					),
+					heroImgHref: `https://driftoffcoursechetek.com/availability/${reservable.id}`,
+					instructionsText: `${getDisplayDateRange(
+						startDateDate!,
+						endDateDate
+					)}<br/><br/>
+					<b style="color:#FFFFFF; text-decoration: underline;">Pickup Location</b></a><br/>
+					<span style="color:#FFFFFF;">
+					${reservable.pickup?.name}<br/>
+					${reservable.pickup?.address?.address}<br/>
+					${reservable.pickup?.address?.city}, ${reservable.pickup?.address?.state}  ${
+						reservable.pickup?.address?.zipCode
+					}<br/>
+					${
+						reservable.pickup?.address?.longitude &&
+						reservable.pickup?.address?.latitude &&
+						`${reservable.pickup?.address?.latitude} x ${reservable.pickup?.address?.longitude} <br/>`
+					}
+					<br/><br/>
+					${
+						reservable.occupancyPersons &&
+						`Max Occupancy (persons): ${reservable.occupancyPersons}<br/>`
+					}
+					${
+						reservable.occupancyWeight &&
+						`Max Occupancy (weight): ${reservable.occupancyWeight}lbs<br/>`
+					}
+					</span>
+					`,
+				},
+			};
+		}
+
+	} catch (e) {
+		console.error('paypal error ', e)
 	}
+
 	return { errorMessage: 'error' };
 };
 
@@ -234,6 +241,8 @@ export const captureOrder = async (
 	await getDB().reservation.create({
 		data: createRervationData,
 	});
+
+	console.log('order', order)
 
 	if (order.status.toLowerCase().includes('completed')) {
 		await sendConfirmationEmail(user.email!, {
