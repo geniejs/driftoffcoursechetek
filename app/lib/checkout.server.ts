@@ -8,7 +8,7 @@ import { getDisplayDateRange, getImageUrl } from '~/utils';
 import { normalizeDate } from '~/utils';
 import { getReservableAvailabilityByDate, isDev } from '~/utils';
 import { getReservable } from './reservables.db.server';
-import type { Prisma, PrismaClient, User } from '@prisma/client';
+import type { Prisma, User } from '@prisma/client';
 import { getDB } from '~/lib/db.server';
 import type { ApproveAction } from '~/routes/account/checkout';
 import { sendConfirmationEmail } from '~/emailHelper.server';

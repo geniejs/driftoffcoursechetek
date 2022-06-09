@@ -13,6 +13,7 @@ withEsbuildOverride((option, { isServer, isDev }) => {
 	// console.log('isServer', isServer);
 	// if (isServer) option.mainFields = ['browser', 'module', 'main'];
 	if (isServer) {
+		option.mainFields = ['browser', 'module', 'main'];
 		option.define = {
 			...option.define,
 			process: JSON.stringify({

@@ -1,10 +1,9 @@
 
-import type { PrismaClient } from '@prisma/client/edge'
 
-let db: PrismaClient;
+let db: any;
 
 declare global {
-  var __db: PrismaClient;
+  var __db: any;
 }
 
 // const client = new PrismaClient({
