@@ -1,5 +1,6 @@
-import { Link } from "@remix-run/react";
+import { Link } from '@remix-run/react';
 import type { MouseEvent, PropsWithoutRef, ReactElement } from 'react';
+import { useMemo, useRef } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import type { ReservableImage } from '@prisma/client';
 import classNames from 'classnames';
@@ -41,6 +42,17 @@ export default function Carousel({
 	const [next, setNext] = useState(1);
 	const [prev, setPrev] = useState(images.length - 1);
 	const [active, setActive] = useState(0);
+	const [scrollingFromClick, setScrolling] = useState(false);
+	const carouselRef = useRef<HTMLDivElement>(null);
+	const carouselItems: Record<string, HTMLDivElement> = useMemo(() => {
+		return {};
+	}, []);
+	const setItemRef = (ref: HTMLDivElement) => {
+		if (ref && ref.id) {
+			carouselItems[ref.id] = ref;
+		}
+	};
+	const [statusClasses, setStatusClasses] = useState('');
 
 	const onLoad = useCallback(
 		(i: number) => {
@@ -52,28 +64,30 @@ export default function Carousel({
 		},
 		[loadedImages]
 	);
+	// works without JS due to using anchor, but js can make it nicer
 	const onCarouselNav = useCallback(
 		(e?: MouseEvent<HTMLAnchorElement>, scroll = true) => {
+			let element: HTMLElement | null = null;
 			if (e) {
 				e.preventDefault();
-				history.replaceState({}, '', e.currentTarget.href);
+				element = document.getElementById(
+					e.currentTarget.hash.replace('#', '') || ''
+				) as HTMLDivElement;
 			}
 			let curr = active;
 			try {
-				curr = window.location.hash
-					? parseInt(window.location.hash.replace('#', '').replace(imgId, ''))
-					: 0;
+				curr = element?.dataset?.index ? parseInt(element?.dataset?.index) : 0;
+				// eslint-disable-next-line no-empty
 			} catch {}
 			curr = curr || 0;
 			if (curr !== active) {
 				if (scroll) {
-					document
-						.getElementById(window.location.hash?.replace('#', ''))
-						?.scrollIntoView({
-							behavior: 'smooth',
-							block: 'nearest',
-							inline: 'nearest',
-						});
+					setScrolling(true);
+					element?.scrollIntoView({
+						behavior: 'smooth',
+						block: 'nearest',
+						inline: 'center',
+					});
 				}
 
 				setActive(curr);
@@ -83,45 +97,74 @@ export default function Carousel({
 				setPrev(newPrev);
 			}
 		},
-		[images.length, imgId, active]
+		[images.length, active]
 	);
+	useEffect(() => {
+		let location = '';
+		if (active === 0) {
+			location = 'ReactCarousel-at-start';
+		} else if (active === images.length - 1) {
+			location = 'ReactCarousel-at-end';
+		} else {
+			location = 'ReactCarousel-at-middle';
+		}
+		setStatusClasses(`active-${active} ${location}`);
+	}, [active, images.length]);
+	useEffect(() => {
+		// keep active up to date when it is scrolling
+		let carouselObserver: IntersectionObserver;
+		if (carouselRef.current && Object.values(carouselItems).length) {
+			carouselObserver = new IntersectionObserver(
+				(entries) => {
+					if (!scrollingFromClick) {
+						const intersections: number[] = [];
+						entries.forEach((entry) => {
+							if (entry.isIntersecting) {
+								const element = entry.target as HTMLDivElement;
+								try {
+									const curr = element?.dataset?.index
+										? parseInt(element?.dataset?.index)
+										: -1;
+									if (!isNaN(curr) && curr > -1) {
+										intersections.push(curr);
+									}
+									// eslint-disable-next-line no-empty
+								} catch {}
+							}
+						});
+						if (!intersections.includes(active) && intersections.length) {
+							setActive(intersections[0]);
+						}
+					}
+				},
+				{
+					root: carouselRef.current,
+					rootMargin: '0px',
+					threshold: 0.9,
+				}
+			);
+			Object.values(carouselItems).forEach((item) => {
+				carouselObserver.observe(item);
+			});
+		}
+		return () => {
+			if (carouselObserver) {
+				carouselObserver.disconnect();
+			}
+		};
+	}, [carouselRef, carouselItems, active, scrollingFromClick, imgId]);
 	let timeout: NodeJS.Timeout;
-	const onScroll: React.UIEventHandler<HTMLDivElement> = (e) => {
+	const onScroll: React.UIEventHandler<HTMLDivElement> = () => {
 		if (timeout !== undefined) {
 			clearTimeout(timeout);
 		}
-		const target = e.currentTarget;
-
-		const keepHashUpdated = () => {
-			if (target) {
-				const scrollLeft = target.scrollLeft;
-				const width = target.offsetWidth;
-				const curr = Math.round(scrollLeft / width);
-				if (curr != active) {
-					window.location.hash = `#${imgId}${curr}`;
-					onCarouselNav(undefined, false);
-				}
-			}
-		};
-		timeout = setTimeout(keepHashUpdated, 10);
+		timeout = setTimeout(() => setScrolling(false), 10);
 	};
-	useEffect(() => {
-		onCarouselNav();
-	});
 
 	//https://assets.geniecloud.xyz/rental/cl1zfpd270000w4en5bla3at6_full.webp
 	return (
-		<section className="genie-carousel flex w-full flex-col">
+		<section className={`genie-carousel flex w-full flex-col ${statusClasses}`}>
 			<div className="flex w-full items-center justify-between">
-				{images.length > 1 && (
-					<Link
-						onClick={onCarouselNav}
-						to={`#${imgId}${prev}`}
-						className="btn btn-ghost btn-circle btn-sm text-lg lg:text-2xl"
-					>
-						<IoCaretBack />
-					</Link>
-				)}
 				<button
 					onClick={() => {
 						document
@@ -134,14 +177,20 @@ export default function Carousel({
 							id={`carousel-${id}`}
 							onScroll={onScroll}
 							className="carousel cursor-pointer"
+							ref={carouselRef}
 						>
 							{images.map(({ name, alt, image_sizesMeta: img }, i) => {
 								const maxWidth = Math.min(img.full.width, img.lg.width);
 								return (
 									<div
 										id={`${imgId}${i}`}
+										data-index={i}
 										className="carousel-item relative mx-1 flex w-full flex-col items-center justify-center"
 										key={`${imgId}${i}`}
+										role="group"
+										aria-roledescription="slide"
+										aria-label={`${i + 1} of ${images.length}`}
+										ref={setItemRef}
 									>
 										<div className="relative flex h-full flex-col items-center justify-center">
 											<picture
@@ -178,10 +227,26 @@ export default function Carousel({
 													height={img.full.height}
 												/>
 											)}
-											<div className="badge outline badge-accent  absolute left-2 bottom-2 outline-1 outline-accent-content lg:badge-lg">
-												<IoCameraOutline size={18} />
-												&nbsp; {i + 1} / {images.length}
-											</div>
+											{images.length > 1 && (
+												<div className="badge outline badge-accent  absolute left-2 bottom-6 outline-1 outline-accent-content lg:badge-lg">
+													<Link
+														onClick={onCarouselNav}
+														to={`#${imgId}${prev}`}
+														className=" btn btn-circle btn-ghost btn-sm text-lg hover:text-white lg:text-2xl"
+													>
+														<IoCaretBack />
+													</Link>
+													<IoCameraOutline size={18} />
+													&nbsp; {i + 1} / {images.length}
+													<Link
+														onClick={onCarouselNav}
+														to={`#${imgId}${next}`}
+														className="btn btn-ghost btn-circle btn-sm text-lg  hover:text-white lg:text-2xl"
+													>
+														<IoCaretForward />
+													</Link>
+												</div>
+											)}
 										</div>
 										{name}
 									</div>
@@ -190,17 +255,7 @@ export default function Carousel({
 						</div>
 					</label>
 				</button>
-				{images.length > 1 && (
-					<Link
-						onClick={onCarouselNav}
-						to={`#${imgId}${next}`}
-						className="btn btn-ghost btn-circle btn-sm text-lg  lg:text-2xl"
-					>
-						<IoCaretForward />
-					</Link>
-				)}
 			</div>
-			;
 			{thumbnails && (
 				<div className="mt-4 flex w-full flex-wrap items-center justify-center gap-4">
 					{images.map(({ name, alt, image_sizesMeta: img }, i) => {

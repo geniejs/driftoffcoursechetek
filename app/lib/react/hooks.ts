@@ -1,4 +1,5 @@
-import type { EffectCallback } from 'react';
+import type { EffectCallback} from 'react';
+import { useCallback, useRef } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import type { Auth, AuthError, RecaptchaVerifier } from '@firebase/auth';
 import {
@@ -74,12 +75,18 @@ export const useUpdatePhoneNumber = (auth: Auth): UpdatePhoneNumberHook => {
 		}
 	}, [auth.currentUser, verificationCode, verificationId]);
 
-	const resArray: UpdatePhoneNumberHook = [
+	return useMemo<UpdatePhoneNumberHook>(() => [
 		updatePhoneNumber,
 		verificationId,
 		setVerificationCode,
 		loading,
 		error,
-	];
-	return useMemo<UpdatePhoneNumberHook>(() => resArray, resArray);
+	], [
+		updatePhoneNumber,
+		verificationId,
+		setVerificationCode,
+		loading,
+		error,
+	]);
 };
+

@@ -33,6 +33,7 @@ import GoogleButton from "~/components/buttons/Google";
 import { useUpdatePhoneNumber } from "~/lib/react/hooks";
 import { useFetcher } from "@remix-run/react";
 import type { MetaFunction } from "@remix-run/cloudflare";
+import LoadingSpinner from '~/components/LoadingSpinner';
 
 export let meta: MetaFunction = () => {
   return {
@@ -250,158 +251,160 @@ export default function ProfileEdit() {
     [modalToggle, providers]
   );
   return (
-    <div className=" card mx-auto mb-4 w-full bg-primary bg-opacity-70 shadow-xl">
-      <div className="card-body">
-        <div className="profile-detail my-4 flex w-full flex-col place-items-center">
-          {errorMessage && (
-            <div className="alert alert-error mb-4 shadow-lg">
-              <div>
-                <IoCloseCircleSharp className="text-lg" />
-                <span>{errorMessage}</span>
-              </div>
-              <div className="flex-none">
-                <button
-                  className="btn btn-ghost btn-sm"
-                  onClick={() => setErrorMessage("")}
-                >
-                  <IoCloseSharp className="text-2xl" />
-                </button>
-              </div>
-            </div>
-          )}
-          <div className="flex w-full flex-col gap-4">
-            {user && !user.isAnonymous && (
-              <EditInput
-                label="Name"
-                value={displayName}
-                editFunction={updateDisplayName}
-                updating={profileUpdating}
-                error={profileError}
-                onSuccess={onSuccess}
-                onError={onError}
-              ></EditInput>
-            )}
-            <EditInput
-              label="Phone"
-              value={phoneNumber}
-              editFunction={updatePhoneNumberCall}
-              updating={phoneNumberLoading}
-              error={phoneNumberError}
-              onSuccess={onSuccess}
-              onError={onError}
-              btnId="phoneSignIn"
-            ></EditInput>
-            {verificationId && phoneNumberLoading && (
-              <EditInput
-                label="Phone Verification Code"
-                editFunction={(verificationCode) => {
-                  setVerificationCode(verificationCode);
-                }}
-                updating={false}
-                error={phoneNumberError}
-                onSuccess={onSuccess}
-                onError={onError}
-                editMode={true}
-              ></EditInput>
-            )}
-            <EditInput
-              label="Email"
-              value={email}
-              editFunction={updateEmail}
-              onEnterEdit={updateEmail}
-              updating={emailUpdating}
-              error={emailError}
-              onSuccess={onSuccess}
-              setSuccess={emailUpdated}
-              onError={onError}
-            ></EditInput>
-            {!changePassword &&
-              providers?.includes(EmailAuthProvider.PROVIDER_ID) && (
-                <button
-                  className="btn w-full md:w-1/2"
-                  onClick={() => {
-                    setChangePassword(true);
-                  }}
-                >
-                  Change Password
-                </button>
-              )}
-            {changePassword && (
-              <EditInput
-                label="Password"
-                editFunction={updatePassword}
-                updating={passwordUpdating}
-                error={passwordError}
-                editMode={changePassword}
-                onSuccess={onSuccess}
-                onError={onError}
-                hideSave={user?.isAnonymous}
-                inputRef={passwordInput}
-              ></EditInput>
-            )}
-            <div className="divider"></div>
-            <div className="flex w-full flex-wrap gap-4">
-              {user && !providers?.includes(FacebookAuthProvider.PROVIDER_ID) && (
-                <button
-                  onClick={async () => {
-                    await linkWithRedirect(user, facebookProvider);
-                  }}
-                >
-                  <FacebookButton text="Connect Facebook Account"></FacebookButton>
-                </button>
-              )}
-              {user && !providers?.includes(GoogleAuthProvider.PROVIDER_ID) && (
-                <button
-                  onClick={async () => {
-                    await linkWithRedirect(user, googleProvider);
-                  }}
-                >
-                  <GoogleButton text="Connect Google Account"></GoogleButton>
-                </button>
-              )}
-              {user &&
-                !user.isAnonymous &&
-                !providers?.includes(EmailAuthProvider.PROVIDER_ID) && (
-                  <button
-                    className="btn"
-                    onClick={() => {
-                      setChangePassword(true);
-                    }}
-                  >
-                    Set a password
-                  </button>
-                )}
-            </div>
-          </div>
+		<div className=" card mx-auto mb-4 w-full bg-primary bg-opacity-70 shadow-xl">
+			{(loading || fetcher.state !== 'idle') && <LoadingSpinner />}
 
-          {/* For login popup */}
-          <input
-            ref={modalToggle}
-            type="checkbox"
-            id="my-modal-4"
-            className="modal-toggle"
-          />
-          {showLogin && (
-            <label htmlFor="my-modal-4" className="modal cursor-pointer">
-              <label className="modal-box relative" htmlFor="">
-                <label
-                  htmlFor="my-modal-4"
-                  className="btn btn-circle btn-sm absolute right-2 top-2"
-                >
-                  ✕
-                </label>
-                <h3 className="text-lg font-bold">
-                  Re-login to change profile data
-                </h3>
-                <FirebaseAuth
-                  uiConfig={uiConfig}
-                  firebaseAuth={auth}
-                ></FirebaseAuth>
-              </label>
-            </label>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+			<div className="card-body">
+				<div className="profile-detail my-4 flex w-full flex-col place-items-center">
+					{errorMessage && (
+						<div className="alert alert-error mb-4 shadow-lg">
+							<div>
+								<IoCloseCircleSharp className="text-lg" />
+								<span>{errorMessage}</span>
+							</div>
+							<div className="flex-none">
+								<button
+									className="btn btn-ghost btn-sm"
+									onClick={() => setErrorMessage('')}
+								>
+									<IoCloseSharp className="text-2xl" />
+								</button>
+							</div>
+						</div>
+					)}
+					<div className="flex w-full flex-col gap-4">
+						{user && !user.isAnonymous && (
+							<EditInput
+								label="Name"
+								value={displayName}
+								editFunction={updateDisplayName}
+								updating={profileUpdating}
+								error={profileError}
+								onSuccess={onSuccess}
+								onError={onError}
+							></EditInput>
+						)}
+						<EditInput
+							label="Phone"
+							value={phoneNumber}
+							editFunction={updatePhoneNumberCall}
+							updating={phoneNumberLoading}
+							error={phoneNumberError}
+							onSuccess={onSuccess}
+							onError={onError}
+							btnId="phoneSignIn"
+						></EditInput>
+						{verificationId && phoneNumberLoading && (
+							<EditInput
+								label="Phone Verification Code"
+								editFunction={(verificationCode) => {
+									setVerificationCode(verificationCode);
+								}}
+								updating={false}
+								error={phoneNumberError}
+								onSuccess={onSuccess}
+								onError={onError}
+								editMode={true}
+							></EditInput>
+						)}
+						<EditInput
+							label="Email"
+							value={email}
+							editFunction={updateEmail}
+							onEnterEdit={updateEmail}
+							updating={emailUpdating}
+							error={emailError}
+							onSuccess={onSuccess}
+							setSuccess={emailUpdated}
+							onError={onError}
+						></EditInput>
+						{!changePassword &&
+							providers?.includes(EmailAuthProvider.PROVIDER_ID) && (
+								<button
+									className="btn w-full md:w-1/2"
+									onClick={() => {
+										setChangePassword(true);
+									}}
+								>
+									Change Password
+								</button>
+							)}
+						{changePassword && (
+							<EditInput
+								label="Password"
+								editFunction={updatePassword}
+								updating={passwordUpdating}
+								error={passwordError}
+								editMode={changePassword}
+								onSuccess={onSuccess}
+								onError={onError}
+								hideSave={user?.isAnonymous}
+								inputRef={passwordInput}
+							></EditInput>
+						)}
+						<div className="divider"></div>
+						<div className="flex w-full flex-wrap gap-4">
+							{user && !providers?.includes(FacebookAuthProvider.PROVIDER_ID) && (
+								<button
+									onClick={async () => {
+										await linkWithRedirect(user, facebookProvider);
+									}}
+								>
+									<FacebookButton text="Connect Facebook Account"></FacebookButton>
+								</button>
+							)}
+							{user && !providers?.includes(GoogleAuthProvider.PROVIDER_ID) && (
+								<button
+									onClick={async () => {
+										await linkWithRedirect(user, googleProvider);
+									}}
+								>
+									<GoogleButton text="Connect Google Account"></GoogleButton>
+								</button>
+							)}
+							{user &&
+								!user.isAnonymous &&
+								!providers?.includes(EmailAuthProvider.PROVIDER_ID) && (
+									<button
+										className="btn"
+										onClick={() => {
+											setChangePassword(true);
+										}}
+									>
+										Set a password
+									</button>
+								)}
+						</div>
+					</div>
+
+					{/* For login popup */}
+					<input
+						ref={modalToggle}
+						type="checkbox"
+						id="my-modal-4"
+						className="modal-toggle"
+					/>
+					{showLogin && (
+						<label htmlFor="my-modal-4" className="modal cursor-pointer">
+							<label className="modal-box relative" htmlFor="">
+								<label
+									htmlFor="my-modal-4"
+									className="btn btn-circle btn-sm absolute right-2 top-2"
+								>
+									✕
+								</label>
+								<h3 className="text-lg font-bold">
+									Re-login to change profile data
+								</h3>
+								<FirebaseAuth
+									uiConfig={uiConfig}
+									firebaseAuth={auth}
+								></FirebaseAuth>
+							</label>
+						</label>
+					)}
+				</div>
+			</div>
+		</div>
+	);
 }

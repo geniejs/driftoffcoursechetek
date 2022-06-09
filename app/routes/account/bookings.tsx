@@ -91,6 +91,7 @@ export default function Bookings() {
 				return (
 					<div id={reservation?.id?.toLowerCase()} key={i}>
 						<Product
+							reverseMobile
 							header={
 								<div className="card mb-4 place-content-center bg-primary p-4 text-center text-lg font-semibold uppercase text-primary-content">
 									<p className="font-bold">Reservation #{reservation?.id}</p>
@@ -150,7 +151,7 @@ export default function Bookings() {
 							simple
 							reservable={reservable}
 						>
-							<div className="flex flex-col gap-4 ">
+							<div className="flex flex-col gap-4 px-4">
 								<DocumentRenderer document={reservable.reservationNote} />
 								<p className="font-semibold underline">Pickup Location</p>
 								<p>{reservable.pickup?.name}</p>

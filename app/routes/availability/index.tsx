@@ -4,7 +4,8 @@ import type { LoaderFunction, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { Form, Link, useLoaderData, useSearchParams } from '@remix-run/react';
 import Product from '~/components/blocks/product';
-import { AvailabilityResponse, getDisplayDateRange } from '~/utils';
+import type { AvailabilityResponse } from '~/utils';
+import { getDisplayDateRange } from '~/utils';
 import {
 	getMDYStr,
 	getReservablesAvailabilityByDate,
@@ -28,6 +29,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 	let reservables = await getReservablesAvailabilityByDate(startDate, endDate);
 	reservables =
 		reservables && reservables.length ? reservables : await getReservables();
+
 	return json(reservables);
 };
 
@@ -44,7 +46,7 @@ export default function Availability() {
 	);
 	return (
 		<div className="flex flex-col">
-			<div className=" card mx-auto mb-4 w-full bg-primary bg-opacity-70 shadow-xl">
+			<div className=" card mx-auto mb-4 w-full border-2 border-primary-focus bg-primary bg-opacity-70 shadow-xl">
 				<div className="card-body">
 					<Form
 						target="?index"
@@ -96,7 +98,7 @@ export default function Availability() {
 
 						<button
 							type="submit"
-							className="m btn btn-accent flex w-full flex-nowrap place-items-center gap-2 self-end text-lg font-semibold uppercase md:w-1/3"
+							className=" btn btn-accent min-h-12 flex h-auto w-full flex-nowrap gap-2 self-end text-lg font-semibold uppercase md:w-1/3"
 						>
 							<IoSearch />
 							<span>Check Availability</span>
@@ -115,7 +117,7 @@ export default function Availability() {
 								`}</span>
 								<Link
 									to={`/booking/${reservable.id}?${searchParams.toString()}`}
-									className="btn btn-accent btn-block mt-4 py-2 px-6 text-lg "
+									className="min-h12 btn btn-accent btn-block mt-4 h-auto py-2 px-6 text-lg"
 								>
 									Book Now for ${reservable.totalCost}*
 								</Link>

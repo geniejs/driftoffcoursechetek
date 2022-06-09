@@ -11,6 +11,7 @@ import {
 import { useEffect } from "react";
 import { logout } from "~/utils";
 import { cookieName } from "~/config";
+import LoadingSpinner from '~/components/LoadingSpinner';
 export let action: ActionFunction = async ({ request }) => {
   return new Response("...", {
     headers: {
@@ -37,5 +38,9 @@ export default function Logout() {
       });
     }
   }, [auth, fetcher, navigate, searchParams, transition.state]);
-  return null;
+	return (
+		<div className="logout">
+			{fetcher.state !== 'idle' && <LoadingSpinner />}
+		</div>
+	);
 }

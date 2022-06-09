@@ -4,165 +4,172 @@ import firebaseStyles from "firebaseui/dist/firebaseui.css";
 import { getFirebaseClient } from "./lib/firebase/firebase";
 
 import {
-  Links,
-  LiveReload,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-  useCatch,
-  useLocation,
-} from "@remix-run/react";
+	Links,
+	LiveReload,
+	Meta,
+	Outlet,
+	Scripts,
+	ScrollRestoration,
+	useCatch,
+	useLocation,
+	useTransition,
+} from '@remix-run/react';
 
-import innerMoonToggle from "@theme-toggles/react/css/InnerMoon.css";
-import React, { useEffect, useState } from "react";
-import SiteLayout from "./components/SiteLayout";
-import { RootContext } from "./lib/react/context";
-import { isClient } from "./utils";
-import classNames from "classnames";
-import tailwindcss from "./tailwind.css";
+import innerMoonToggle from '@theme-toggles/react/css/InnerMoon.css';
+import React, { useEffect, useState } from 'react';
+import SiteLayout from './components/SiteLayout';
+import { RootContext } from './lib/react/context';
+import { isClient } from './utils';
+import classNames from 'classnames';
+import tailwindcss from './tailwind.css';
+import LoadingSpinner from './components/LoadingSpinner';
 if (!tailwindcss) {
-  throw new Error(
-    process.env.NODE_ENV === "production"
-      ? "CSS file not found."
-      : `Tailwind "CSS file not found." Please run "npm run build:tailwind"`
-  );
+	throw new Error(
+		process.env.NODE_ENV === 'production'
+			? 'CSS file not found.'
+			: `Tailwind "CSS file not found." Please run "npm run build:tailwind"`
+	);
 }
 
 export let links: LinksFunction = () => {
-  return [
-    {
-      rel: "preconnect",
-      href: "//fonts.gstatic.com",
-      crossOrigin: "anonymous",
-    },
-    { rel: "stylesheet", href: tailwindcss },
-    {
-      rel: "stylesheet",
-      href: "//fonts.googleapis.com/css?family=Work+Sans:300,400,600,700&amp;lang=en",
-    },
-    {
-      rel: "stylesheet",
-      href: innerMoonToggle,
-    },
-    {
-      rel: "icon",
-      type: "image/x-icon",
-      href: "/favicon.png",
-    },
-    { rel: "stylesheet", href: firebaseStyles },
-  ];
+	return [
+		{
+			rel: 'preconnect',
+			href: '//fonts.gstatic.com',
+			crossOrigin: 'anonymous',
+		},
+		{ rel: 'stylesheet', href: tailwindcss },
+		{
+			rel: 'stylesheet',
+			href: '//fonts.googleapis.com/css?family=Work+Sans:300,400,600,700&amp;lang=en',
+		},
+		{
+			rel: 'stylesheet',
+			href: innerMoonToggle,
+		},
+		{
+			rel: 'icon',
+			type: 'image/x-icon',
+			href: '/favicon.png',
+		},
+		{ rel: 'stylesheet', href: firebaseStyles },
+	];
 };
 
 export let meta: MetaFunction = () => {
-  return {
-    title: "Drift Off Course",
-    description: "Chetek, WI Boat Rental",
-  };
+	return {
+		title: 'Drift Off Course',
+		description: 'Chetek, WI Boat Rental',
+	};
 };
 export default function App() {
-  getFirebaseClient();
-  return (
-    <Document>
-      <Layout>
-        <SiteLayout>
-          <Outlet />
-        </SiteLayout>
-      </Layout>
-    </Document>
-  );
+	getFirebaseClient();
+	return (
+		<Document>
+			<Layout>
+				<SiteLayout>
+					<Outlet />
+				</SiteLayout>
+			</Layout>
+		</Document>
+	);
 }
 
 function Document({
-  children,
-  title,
+	children,
+	title,
 }: {
-  children: React.ReactNode;
-  title?: string;
+	children: React.ReactNode;
+	title?: string;
 }) {
-  const prefersDark =
-    isClient && window.matchMedia("(prefers-color-scheme: dark)").matches;
+	const prefersDark =
+		isClient && window.matchMedia('(prefers-color-scheme: dark)').matches;
 	const [darkTheme, setDarkTheme] = useState(false);
-  const [theme, setTheme] = useState<string>();
+	const [theme, setTheme] = useState<string>();
+	const transition = useTransition();
+	useEffect(() => {
+		console.log('transition', transition);
+	}, [transition]);
 
-  useEffect(() => {
-    let storageTheme = localStorage.getItem("theme");
-    if (!storageTheme) {
-      storageTheme = prefersDark ? 'dark' : 'light';
+	useEffect(() => {
+		let storageTheme = localStorage.getItem('theme');
+		if (!storageTheme) {
+			storageTheme = prefersDark ? 'dark' : 'light';
 			localStorage.setItem('theme', storageTheme);
-    }
+		}
 
-    setDarkTheme(storageTheme === "dark");
-  }, [darkTheme, prefersDark]);
+		setDarkTheme(storageTheme === 'dark');
+	}, [darkTheme, prefersDark]);
 
-  useEffect(() => {
-    setTheme(darkTheme ? "dark" : "cupcake");
-  }, [darkTheme]);
+	useEffect(() => {
+		setTheme(darkTheme ? 'dark' : 'cupcake');
+	}, [darkTheme]);
 
-  const toggleDarkMode = () => {
-    localStorage.setItem(
-      "theme",
-      localStorage.getItem("theme") === "light" ? "dark" : "light"
-    );
-    setDarkTheme(localStorage.getItem("theme") === "dark");
-  };
-  // useEffect(() => {
-  // 	function debugAccess(
-  // 		obj: Record<string, any>,
-  // 		prop: string,
-  // 		debugGet = false
-  // 	) {
-  // 		var origValue = obj[prop];
-  // 		Object.defineProperty(obj, prop, {
-  // 			get: function () {
-  // 				if (debugGet) console.log('get origValue :>> ', origValue);
-  // 				return origValue;
-  // 			},
-  // 			set: function (val) {
-  // 				console.log('set origValue, val :>> ', origValue, val);
-  // 				return (origValue = val);
-  // 			},
-  // 		});
-  // 	}
-  // 	debugAccess(document, 'cookie', true);
-  // }, []);
+	const toggleDarkMode = () => {
+		localStorage.setItem(
+			'theme',
+			localStorage.getItem('theme') === 'light' ? 'dark' : 'light'
+		);
+		setDarkTheme(localStorage.getItem('theme') === 'dark');
+	};
+	// useEffect(() => {
+	// 	function debugAccess(
+	// 		obj: Record<string, any>,
+	// 		prop: string,
+	// 		debugGet = false
+	// 	) {
+	// 		var origValue = obj[prop];
+	// 		Object.defineProperty(obj, prop, {
+	// 			get: function () {
+	// 				if (debugGet) console.log('get origValue :>> ', origValue);
+	// 				return origValue;
+	// 			},
+	// 			set: function (val) {
+	// 				console.log('set origValue, val :>> ', origValue, val);
+	// 				return (origValue = val);
+	// 			},
+	// 		});
+	// 	}
+	// 	debugAccess(document, 'cookie', true);
+	// }, []);
 
-  // const matches = useMatches();
-  // const useWhenSomethingIsTrue = matches.some(match => match.handle && match.handle?.something)
-  return (
-    <RootContext.Provider value={{ darkmode: darkTheme, toggleDarkMode }}>
-      <html
-        className={classNames({
-          visible: theme,
-          invisible: !theme,
-          dark: darkTheme,
-        })}
-        data-theme={theme}
-        lang="en"
-        suppressHydrationWarning={true}
-      >
-        <head>
-          <meta charSet="utf-8" />
-          <meta name="viewport" content="width=device-width,initial-scale=1" />
-          {title ? <title>{title}</title> : null}
-          <Meta />
-          <Links />
-        </head>
-        <body
-          className={classNames("min-h-screen  bg-[length:100%] bg-no-repeat", {
-            "bg-layered-waves-dark": darkTheme,
-            "bg-layered-waves-light": !darkTheme,
-          })}
-        >
-          {children}
-          <RouteChangeAnnouncement />
-          <ScrollRestoration />
-          <Scripts />
-          {process.env.NODE_ENV === "development" && <LiveReload />}
-        </body>
-      </html>
-    </RootContext.Provider>
-  );
+	// const matches = useMatches();
+	// const useWhenSomethingIsTrue = matches.some(match => match.handle && match.handle?.something)
+	return (
+		<RootContext.Provider value={{ darkmode: darkTheme, toggleDarkMode }}>
+			<html
+				className={classNames({
+					visible: theme,
+					invisible: !theme,
+					dark: darkTheme,
+				})}
+				data-theme={theme}
+				lang="en"
+				suppressHydrationWarning={true}
+			>
+				<head>
+					<meta charSet="utf-8" />
+					<meta name="viewport" content="width=device-width,initial-scale=1" />
+					{title ? <title>{title}</title> : null}
+					<Meta />
+					<Links />
+				</head>
+				<body
+					className={classNames('min-h-screen  bg-[length:100%] bg-no-repeat', {
+						'bg-layered-waves-dark': darkTheme,
+						'bg-layered-waves-light': !darkTheme,
+					})}
+				>
+					{transition?.state !== 'idle' && <LoadingSpinner />}
+					{children}
+					<RouteChangeAnnouncement />
+					<ScrollRestoration />
+					<Scripts />
+					{process.env.NODE_ENV === 'development' && <LiveReload />}
+				</body>
+			</html>
+		</RootContext.Provider>
+	);
 }
 
 function Layout({ children }: React.PropsWithChildren<{}>) {

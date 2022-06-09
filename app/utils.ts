@@ -206,7 +206,7 @@ export type AvailabilityResponse = ReservableResponse & {
   totalCost?: number;
 };
 
-const getReservableAvailabilityResponse = (
+export const getReservableAvailabilityResponse = (
   startDateDate: Date,
   endDateDate: Date,
   availability: Map<string, number>,
@@ -215,6 +215,9 @@ const getReservableAvailabilityResponse = (
   const availDates: string[] = [];
   const unavailDates: string[] = [];
   const costs: number[] = [];
+  startDateDate = new Date(startDateDate);
+  endDateDate = new Date(endDateDate);
+
   let startDate = startDateDate.toUTCString();
 
   let totalCost: number = 0;

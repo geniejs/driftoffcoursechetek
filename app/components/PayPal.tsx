@@ -140,10 +140,18 @@ export default function PayPal({
 				})
 				.render('#paypal-button-container');
 		}
-	}, [approveData, approveUrl, createData, createUrl, paypal, paypalBtn]);
+	}, [
+		approveData,
+		approveUrl,
+		createData,
+		createUrl,
+		instructionsText,
+		paypal,
+		paypalBtn,
+	]);
 
 	return (
-		<section className="card flex w-full justify-center bg-slate-100 p-4">
+		<section className=" flex w-full justify-center p-4">
 			{/* Set up a container element for the button  */}
 			<div
 				ref={paypalBtn}

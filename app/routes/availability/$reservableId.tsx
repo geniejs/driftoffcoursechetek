@@ -16,14 +16,24 @@ export let meta: MetaFunction = () => {
 	};
 };
 type IndexData = {
-	reservable: ReservableResponse;
-	reservations: ReservationsResponse[];
+	reservable?: ReservableResponse;
+	reservations?: ReservationsResponse[];
 };
 
 export let loader: LoaderFunction = async ({ params }) => {
+	let reservable: ReservableResponse | undefined = undefined;
+	let reservations: ReservationsResponse[] | undefined = undefined;
+	try {
+		[reservable, reservations] = await Promise.all([
+			getReservable(params.reservableId),
+			getReservations(),
+		]);
+	} catch (e) {
+		console.error(e);
+	}
 	let data: IndexData = {
-		reservable: await getReservable(params.reservableId),
-		reservations: await getReservations(),
+		reservable,
+		reservations,
 	};
 	return json(data);
 };
@@ -33,7 +43,12 @@ export default function Index() {
 	let data = useLoaderData<IndexData>();
 	return (
 		<div className="flex min-h-screen flex-col">
-			<Product reservable={data.reservable} reservations={data.reservations} />
+			{data.reservable && (
+				<Product
+					reservable={data.reservable}
+					reservations={data.reservations}
+				/>
+			)}
 		</div>
 	);
 }
