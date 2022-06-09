@@ -1,25 +1,19 @@
 import { useState } from 'react';
 import { IoSearch } from 'react-icons/io5';
-import type { LoaderFunction, MetaFunction } from '@remix-run/cloudflare';
+import type { LoaderFunction } from "@remix-run/cloudflare";
 import { json } from '@remix-run/cloudflare';
 import { Form, Link, useLoaderData, useSearchParams } from '@remix-run/react';
 import Product from '~/components/blocks/product';
-import { AvailabilityResponse, getDisplayDateRange } from '~/utils';
+import type { AvailabilityResponse } from "~/utils";
+import { getDisplayDateRange } from "~/utils";
 import {
-	getMDYStr,
-	getReservablesAvailabilityByDate,
-	getYMDStr,
-	normalizeDate,
-} from '~/utils';
+  getReservablesAvailabilityByDate,
+  getYMDStr,
+  normalizeDate,
+} from "~/utils";
 import NotAvailable from '~/components/NotAvailable';
 import { getReservables } from '~/lib/reservables.db.server';
 
-export let meta: MetaFunction = () => {
-	return {
-		title: 'Drift Off Course',
-		description: 'Chetek, WI Boat Rental',
-	};
-};
 
 export const loader: LoaderFunction = async ({ request }) => {
 	const url = new URL(request.url);
