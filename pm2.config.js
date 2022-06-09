@@ -9,6 +9,7 @@ module.exports = {
 			autorestart: false,
 			env: {
 				...process.env,
+				PRISMA_CLIENT_ENGINE_TYPE: 'dataproxy',
 				NODE_ENV: process.env.NODE_ENV ?? 'development',
 			},
 		},
