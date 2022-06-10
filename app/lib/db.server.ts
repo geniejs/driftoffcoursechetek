@@ -3,7 +3,7 @@
 let db: any;
 
 declare global {
-  var __db: any;
+  var __db: any | undefined;
 }
 
 // const client = new PrismaClient({
@@ -37,14 +37,14 @@ export const getDB = () => {
   if (!db ) {
     if (process.env.NODE_ENV === "development") {
       if (!global.__db) {
-        const PC = require('@prisma/client');
-        global.__db = new PC.PrismaClient();
+        const PrismaClient = require('@prisma/client');
+        global.__db = new PrismaClient.PrismaClient();
       }
       db = global.__db;
     } else {
-       const PC = require('@prisma/client');
+      const PrismaClient = require('@prisma/client');
 
-      db = new PC.PrismaClient();
+      db = new PrismaClient.PrismaClient();
  
     }
   }
