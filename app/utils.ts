@@ -250,7 +250,7 @@ export const getReservablesAvailabilityByDate = async (
   reservables?: ReservableResponse[],
   reservations?: ReservationsResponse[]
 ) => {
-  const availabilityResponse: AvailabilityResponse[] = [];
+  const availabilityResponse: AvailabilityResponse[] = reservables || [];
 
   if (startDate && endDate) {
     const startDateDate = normalizeDate(startDate);

@@ -9,6 +9,8 @@ import { getReservable } from '~/lib/reservables.db.server';
 import type { ReservationsResponse } from '~/lib/reservations.db.server';
 import { getReservations } from '~/lib/reservations.db.server';
 import { sendConfirmationEmail } from '~/emailHelper.server';
+import { stringify } from '@firebase/util';
+import { getReservablesAndReservations } from '.';
 export let meta: MetaFunction = () => {
 	return {
 		title: 'Drift Off Course',
@@ -21,16 +23,9 @@ type IndexData = {
 };
 
 export let loader: LoaderFunction = async ({ params }) => {
-	let reservable: ReservableResponse | undefined = undefined;
-	let reservations: ReservationsResponse[] | undefined = undefined;
-	try {
-		[reservable, reservations] = await Promise.all([
-			getReservable(params.reservableId),
-			getReservations(),
-		]);
-	} catch (e) {
-		console.error(e);
-	}
+	const [reservations, _reservables, reservable] =
+		await getReservablesAndReservations(params.reservableId);
+
 	let data: IndexData = {
 		reservable,
 		reservations,

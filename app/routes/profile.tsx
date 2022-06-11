@@ -17,7 +17,7 @@ export default function Profile() {
 	}, [user, loading, navigate]);
 	useEffect(() => {
 		const sendTo = searchParams.get('sendto');
-		if (sendTo) {
+		if (sendTo && (!user || user?.isAnonymous)) {
 			navigate(sendTo);
 		}
 	}, [navigate, searchParams]);
@@ -44,8 +44,7 @@ export default function Profile() {
 					{user?.isAnonymous && (
 						<div className="align-content-center flex">
 							<span>
-								You are logged in anonymously, create a permanent account below
-								or{' '}
+								You are current a guest, create a permanent account below or{' '}
 								<Link className="link" to="/logout?sendto=/login">
 									click here if you already have one
 								</Link>

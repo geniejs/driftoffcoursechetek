@@ -10,6 +10,8 @@ import type {
 	CreateAction,
 } from '~/routes/account/checkout';
 import type { Prisma } from '@prisma/client';
+import { useNavigate } from '@remix-run/react';
+import { login } from '~/utils';
 
 interface PayPalInput {
 	createUrl: string;
@@ -17,6 +19,9 @@ interface PayPalInput {
 	createData: CreateAction;
 	approveData?: ApproveAction;
 	instructionsText: string;
+	name?: string;
+	phone?: string;
+	email?: string;
 }
 
 export default function PayPal({
@@ -25,9 +30,14 @@ export default function PayPal({
 	createData,
 	approveData,
 	instructionsText,
+	name,
+	phone,
+	email,
 }: PayPalInput) {
 	const [paypal, setPaypal] = useState<PayPalNamespace | null>();
 	const paypalBtn = useRef<HTMLDivElement>(null);
+	const navigate = useNavigate();
+
 	useMountEffect(() => {
 		const loadPaypal = async () => {
 			try {
@@ -55,6 +65,20 @@ export default function PayPal({
 					style: {
 						color: 'blue',
 					},
+					// onClick: async function () {
+					// 	if (name || phone || email) {
+					// 		await fetch('/account', {
+					// 			method: 'POST', // *GET, POST, PUT, DELETE, etc.
+					// 			cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+					// 			headers: {
+					// 				'Content-Type': 'application/json',
+					// 				// 'Content-Type': 'application/x-www-form-urlencoded',
+					// 			},
+					// 			redirect: 'follow', // manual, *follow, error
+					// 			body: JSON.stringify({ name, phone, email }), // body data type must match "Content-Type" header
+					// 		});
+					// 	}
+					// },
 					createOrder: async function () {
 						const result = await fetch(createUrl, {
 							method: 'post',
@@ -115,20 +139,15 @@ export default function PayPal({
 								}
 
 								// Successful capture! For demo purposes:
-								console.log(
-									'Capture result',
-									orderData,
-									JSON.stringify(orderData, null, 2)
-								);
-								var transaction =
-									orderData.purchase_units[0].payments.captures[0];
-								alert(
-									'Transaction ' +
-										transaction.status +
-										': ' +
-										transaction.id +
-										'\n\nSee console for all available details'
-								);
+								// console.log(
+								// 	'Capture result',
+								// 	orderData,
+								// 	JSON.stringify(orderData, null, 2)
+								// );
+								// var transaction =
+								// 	orderData.purchase_units[0].payments.captures[0];
+
+								navigate('/account/bookings');
 
 								// Replace the above to show a success message within this page, e.g.
 								// const element = document.getElementById('paypal-button-container');

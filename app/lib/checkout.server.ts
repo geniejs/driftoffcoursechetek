@@ -242,7 +242,6 @@ export const captureOrder = async (
 		data: createRervationData,
 	});
 
-	console.log('order', order)
 
 	if (order.status.toLowerCase().includes('completed')) {
 		await sendConfirmationEmail(user.email!, {

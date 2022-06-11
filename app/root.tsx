@@ -87,9 +87,6 @@ function Document({
 	const [darkTheme, setDarkTheme] = useState(false);
 	const [theme, setTheme] = useState<string>();
 	const transition = useTransition();
-	useEffect(() => {
-		console.log('transition', transition);
-	}, [transition]);
 
 	useEffect(() => {
 		let storageTheme = localStorage.getItem('theme');

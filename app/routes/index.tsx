@@ -1,6 +1,6 @@
 import type { LoaderFunction, MetaFunction } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { useLoaderData } from "@remix-run/react";
+import { Link, useLoaderData } from '@remix-run/react';
 import { getPosts } from "~/lib/posts.db.server";
 import type { Post } from "@prisma/client";
 import PostComp from "~/components/Post";
@@ -18,14 +18,14 @@ export let loader: LoaderFunction = async ({ context, request }) => {
 export default function Welcome() {
   const data = useLoaderData<{ posts: Post[]; logo: CarouselImage }>() || [];
   return (
-    <div className="flex min-h-screen flex-col gap-4">
-      {data.posts.map((post, i) => (
-        <PostComp
-          key={i}
-          image={i === 0 ? data.logo : undefined}
-          post={post}
-        ></PostComp>
-      ))}
-    </div>
-  );
+		<div className="flex min-h-screen flex-col gap-4">
+			{data.posts.map((post, i) => (
+				<PostComp key={i} image={i === 0 ? data.logo : undefined} post={post}>
+					<Link className="btn btn-primary btn-block" to="/availability">
+						Book a rental
+					</Link>
+				</PostComp>
+			))}
+		</div>
+	);
 }

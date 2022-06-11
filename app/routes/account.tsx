@@ -4,20 +4,22 @@ import { useEffect } from "react";
 import type { ActionFunction, LoaderFunction } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import {
-  Outlet,
-  useFetcher,
-  useLoaderData,
-  useNavigate,
-  useSearchParams,
-} from "@remix-run/react";
-import { isAuthenticated, getUserByRequestToken } from "~/lib/auth.server";
-import type { User } from "@prisma/client";
-import { UserContext } from "~/lib/react/context";
+	Outlet,
+	useFetcher,
+	useLoaderData,
+	useLocation,
+	useNavigate,
+	useSearchParams,
+} from '@remix-run/react';
+import { isAuthenticated, getUserByRequestToken } from '~/lib/auth.server';
+import type { User } from '@prisma/client';
+import { UserContext } from '~/lib/react/context';
 
-import { login } from "~/utils";
+import { login } from '~/utils';
 import LoadingSpinner from '~/components/LoadingSpinner';
 
 export let action: ActionFunction = async ({ request, context }) => {
+	console.log('bam bam bam');
 	if (!(await isAuthenticated(request))) return redirect('/login');
 	const { user, created, error } = await getUserByRequestToken(request, true);
 	if (error) {
@@ -37,9 +39,13 @@ export default function Account() {
 	const [fbUser, authLoading] = useAuthState(getAuth());
 	const fetcher = useFetcher();
 	const [searchParams] = useSearchParams();
+	let location = useLocation();
+
 	useEffect(() => {
 		const allowAnonPathnames = ['/account/checkout'];
-		const allowAnon = allowAnonPathnames.includes(window.location.pathname);
+		const allowAnon =
+			allowAnonPathnames.includes(location.pathname) ||
+			location.pathname.includes('/booking');
 		const setupAccount = async () => {
 			if (!user && fbUser && fetcher.type === 'init') {
 				login(fbUser, fetcher);
@@ -48,8 +54,7 @@ export default function Account() {
 			} else if (!fbUser && !authLoading && !allowAnon) {
 				navigate(
 					`/login?sendto=${
-						searchParams.get('sendto') ||
-						window.location.pathname + window.location.search
+						searchParams.get('sendto') || location.pathname + location.search
 					}`,
 					{
 						replace: true,

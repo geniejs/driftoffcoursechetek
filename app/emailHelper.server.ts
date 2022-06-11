@@ -20,7 +20,7 @@ export const sendConfirmationEmail = async (
 
 		await sgMail.send({
 			to,
-			// bcc: 'reservations@driftoffcoursechetek.com',
+			bcc: 'reservations@driftoffcoursechetek.com',
 			from: 'reservations@em7084.driftoffcoursechetek.com',
 			replyTo: 'support@driftoffcoursechetek.com',
 			subject: 'Drift Off Course Chetek: Reservation Confirmed',

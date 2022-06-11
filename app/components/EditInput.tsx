@@ -138,7 +138,7 @@ export default function EditInputComp({
 								setVal(value);
 							}
 						}}
-						className="inputClear btn btn-ghost  absolute right-16 text-xl"
+						className="inputClear btn btn-ghost  absolute right-[5rem] text-xl"
 					>
 						<IoCloseSharp className="!rounded-none" />
 					</button>

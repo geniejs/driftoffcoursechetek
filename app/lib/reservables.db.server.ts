@@ -158,29 +158,40 @@ const reservableInclude = {
 	},
 };
 
-export const getReservables = async (ids?: string[]): Promise<ReservableResponse[]> => {
+export const getReservables = async (
+	ids?: string[]
+): Promise<ReservableResponse[]> => {
 	const db = getDB() as PrismaClient;
-	const response = (await db.reservable.findMany({
-		where: ids? {
-			id: {
-				in: ids
-			}
-		}: undefined,
+	let response = (await db.reservable.findMany({
+		where: ids
+			? {
+					id: {
+						in: ids,
+					},
+			  }
+			: undefined,
 		include: {
 			...reservableInclude,
 		},
 	})) as unknown as ReservableResponse[];
+	response = response.filter(
+		(r) => r.isActive || process.env.GENIE_ENV === 'development'
+	);
 	return response;
 };
 export const getReservable = async (
 	id?: string
-): Promise<ReservableResponse> => {
-	const response = (await getDB().reservable.findFirst({
+): Promise<ReservableResponse | undefined> => {
+	let response = (await getDB().reservable.findFirst({
 		where: {
 			id: id,
 		},
 		include: reservableInclude,
-	})) as unknown as ReservableResponse;
+	})) as unknown as ReservableResponse | undefined;
+	response =
+		response?.isActive || process.env.GENIE_ENV === 'development'
+			? response
+			: undefined;
 
 	return response;
 };
