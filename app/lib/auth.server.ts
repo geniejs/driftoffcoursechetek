@@ -11,7 +11,6 @@ import type {
 import { getDB } from '~/lib/db.server';
 
 import * as cookie from 'cookie';
-import { nanoid } from 'nanoid/non-secure';
 import { cookieName } from '~/config';
 export const getDecodedToken = async (
 	request: any
@@ -72,7 +71,7 @@ export const getUserByToken = async (
 	let rEmail: string | undefined = '';
 	let rPhone: string | undefined = '';
 
-	if (request) {
+	if (request && !request.url.includes('checkout')) {
 		try {
 			const data: Record<string, string> | undefined = await request.json();
 			rName = data?.name;
@@ -108,6 +107,7 @@ export const getUserByToken = async (
 			try {
 				userRecord = await getAuth().getUser(firebaseId);
 			} catch (e) {
+				console.error(e);
 				error = e;
 			}
 			if (userRecord || firebaseId) {
@@ -127,7 +127,6 @@ export const getUserByToken = async (
 						: undefined;
 				if (operation === 'create') {
 					const data: Prisma.UserCreateInput = {
-						id: nanoid(),
 						name: userRecord?.displayName || rName || '',
 						email: userRecord?.email || rEmail || `${firebaseId}@anonuser`,
 						firebaseId,
@@ -149,8 +148,8 @@ export const getUserByToken = async (
 					}
 				} else if (operation === 'update') {
 					const data: Prisma.UserUpdateInput = {
-						name: userRecord?.displayName || '',
-						email: userRecord?.email || '',
+						name: userRecord?.displayName || rName || '',
+						email: userRecord?.email || rEmail || `${firebaseId}@anonuser`,
 						phoneNumbers,
 					};
 					try {

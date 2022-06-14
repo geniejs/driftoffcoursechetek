@@ -1,7 +1,6 @@
 import { Link, Outlet, useNavigate, useSearchParams } from '@remix-run/react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { getAuth } from '@firebase/auth';
-import SiteLayout from '~/components/SiteLayout';
 import { useEffect } from 'react';
 import { IoLogOutSharp } from 'react-icons/io5';
 
@@ -17,7 +16,7 @@ export default function Profile() {
 	}, [user, loading, navigate]);
 	useEffect(() => {
 		const sendTo = searchParams.get('sendto');
-		if (sendTo && (!user || user?.isAnonymous)) {
+		if (sendTo && !user) {
 			navigate(sendTo);
 		}
 	}, [navigate, searchParams]);

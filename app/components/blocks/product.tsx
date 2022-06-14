@@ -3,11 +3,11 @@ import type { PropsWithChildren, ReactElement } from 'react';
 import { useMemo } from 'react';
 import { useEffect } from 'react';
 import { useState } from 'react';
-import { IoManOutline } from 'react-icons/io5';
+import { IoAlertCircleOutline, IoManOutline } from 'react-icons/io5';
 import { Link } from '@remix-run/react';
 import type { ReservationsResponse } from '~/lib/reservations.db.server';
 import type { ReservablesData } from '~/routes/reservables';
-import type { AvailabilityResponse } from '~/utils';
+import { AvailabilityResponse, getMinDaysForRange } from '~/utils';
 import {
 	getDisplayDateRange,
 	getReservableAvailabilityResponse,
@@ -44,13 +44,22 @@ export default function Product({
 	const [endDate, setEndDate] = useState<Date>();
 	const [availResponse, setAvailResponse] =
 		useState<AvailabilityResponse | null>(null);
+	const [minDays, setMinDays] = useState(1);
 
 	const reservableDates = useMemo(
 		() =>
-			reservations ? getReservableDates(reservable, reservations) : new Map(),
+			reservations
+				? getReservableDates(reservable, reservations)
+				: new Map<string, { cost: number; minDays: number }>(),
 		[reservable, reservations]
 	);
 	const clearSearchEvent = new Event('clearSearch');
+
+	useEffect(() => {
+		if (startDate && endDate) {
+			setMinDays(getMinDaysForRange(startDate, endDate, reservableDates));
+		}
+	}, [startDate, endDate]);
 
 	useEffect(() => {
 		if (startDate && endDate) {
@@ -202,6 +211,17 @@ export default function Product({
 							{startDate && endDate && availResponse && (
 								<div className="card fixed left-0 bottom-0 z-30 mx-auto my-0 w-full rounded-none bg-primary bg-opacity-70 text-primary-content shadow-xl">
 									<div className="card-body">
+										{minDays > 1 ? (
+											<div className="alert alert-info shadow-lg">
+												<div>
+													<IoAlertCircleOutline />
+													<span>
+														Your current dates have a minimum booking time of{' '}
+														{minDays} days
+													</span>
+												</div>
+											</div>
+										) : undefined}
 										{availResponse.isAvail ? (
 											<Link
 												to={`/booking/${reservable.id}?startDate=${getYMDStr(

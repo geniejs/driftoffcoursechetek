@@ -130,21 +130,22 @@ export default function Bookings() {
 											)}
 										</div>
 									))}
-									{reservable.cancellationCost &&
-									reservable.cancellationCost.cost ? (
-										<div className="form-control text-base-content">
-											<span className="label-text text-base-content">
-												Contact us if you wish to cancel this reservation ($
-												{getCancellationCost(
-													reservable,
-													reservation?.receipt?.reservationCost!
-												)}
-												)
-											</span>
-										</div>
-									) : (
-										''
-									)}
+									<div className="form-control text-base-content">
+										<span className="label-text text-base-content">
+											Contact us if you wish to cancel (715-379-5268 or
+											support@driftoffcoursechetek.com) this reservation{' '}
+											{reservable.cancellationCost &&
+											reservable.cancellationCost.cost ? (
+												<span>
+													$
+													{getCancellationCost(
+														reservable,
+														reservation?.receipt?.reservationCost!
+													)}
+												</span>
+											) : undefined}
+										</span>
+									</div>
 								</div>
 							}
 							bg="base-300"

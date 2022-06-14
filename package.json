@@ -34,9 +34,8 @@
     "cross-env": "^7.0.3",
     "dotenv": "^16.0.1",
     "firebase": "^9.8.2",
-    "firebase-admin": "https://github.com/acoreyj/firebase-admin-cloudflare/raw/master/firebase-admin-10.2.0-7.tgz",
+    "firebase-admin": "https://github.com/acoreyj/firebase-admin-cloudflare/raw/master/firebase-admin-10.3.0-7.tgz",
     "firebaseui": "^6.0.1",
-    "nanoid": "^3.3.4",
     "pm2": "^5.2.0",
     "postcss": "^8.4.14",
     

@@ -23,6 +23,8 @@ import { isClient } from './utils';
 import classNames from 'classnames';
 import tailwindcss from './tailwind.css';
 import LoadingSpinner from './components/LoadingSpinner';
+import Modal from './components/Modal';
+import { useMountEffect } from './lib/react/hooks';
 if (!tailwindcss) {
 	throw new Error(
 		process.env.NODE_ENV === 'production'
@@ -71,7 +73,52 @@ export default function App() {
 					<Outlet />
 				</SiteLayout>
 			</Layout>
+			<ErrorModal />
 		</Document>
+	);
+}
+
+function ErrorModal() {
+	const [errorText, setErrorText] = useState('');
+	useMountEffect(() => {
+		document.addEventListener('errorModalEvent', ((
+			e: CustomEvent<string | Record<string, string>>
+		) => {
+			const errorMessage =
+				typeof e.detail === 'string' ? e.detail : e.detail.error;
+			const detail = e.detail as Record<string, string>;
+			if (
+				errorMessage.toLowerCase().includes('unique constraint failed') &&
+				errorMessage.toLowerCase().includes('email')
+			) {
+				setErrorText(
+					'You already have account with that email, login or provide a different email'
+				);
+			} else if (errorMessage === 'minDays') {
+				setErrorText(
+					`We're sorry, booking for these days requires a minimum booking time of ${detail.detail} days`
+				);
+			} else {
+				setErrorText(
+					'Something went wrong, try again later or contact us at support@driftoffcoursechetek.com / 715-379-5268'
+				);
+			}
+			if (e.detail) {
+				(
+					document.getElementById('globalErrorModal') as HTMLInputElement
+				).checked = true;
+			}
+		}) as EventListener);
+	});
+
+	return (
+		<section>
+			<Modal id="globalErrorModal">
+				<div className="mt-4 pl-8 text-primary-content">
+					<span>{errorText}</span>
+				</div>
+			</Modal>
+		</section>
 	);
 }
 
@@ -170,65 +217,68 @@ function Document({
 }
 
 function Layout({ children }: React.PropsWithChildren<{}>) {
-  return <div className="remix-root remix-app">{children}</div>;
+	return <div className="remix-root remix-app">{children}</div>;
 }
 
 export function CatchBoundary() {
-  let caught = useCatch();
+	let caught = useCatch();
 
-  let message;
-  switch (caught.status) {
-    case 401:
-      message = (
-        <p>
-          Oops! Looks like you tried to visit a page that you do not have access
-          to.
-        </p>
-      );
-      break;
-    case 404:
-      message = (
-        <p>Oops! Looks like you tried to visit a page that does not exist.</p>
-      );
-      break;
+	let message;
+	switch (caught.status) {
+		case 401:
+			message = (
+				<p>
+					Oops! Looks like you tried to visit a page that you do not have access
+					to.
+				</p>
+			);
+			break;
+		case 404:
+			message = (
+				<p>Oops! Looks like you tried to visit a page that does not exist.</p>
+			);
+			break;
 
-    default:
-      throw new Error(caught.data || caught.statusText);
-  }
+		default:
+			throw new Error(caught.data || caught.statusText);
+	}
 
-  return (
-    <Document title={`${caught.status} ${caught.statusText}`}>
-      <Layout>
-        <h1>
-          {caught.status}: {caught.statusText}
-        </h1>
-        {message}
-      </Layout>
-    </Document>
-  );
+	return (
+		<Document title={`${caught.status} ${caught.statusText}`}>
+			<Layout>
+				<h1>
+					{caught.status}: {caught.statusText}
+				</h1>
+				{message}
+			</Layout>
+		</Document>
+	);
 }
 
 export function ErrorBoundary({ error }: { error: Error }) {
-  getFirebaseClient();
-  console.error(error);
-  return (
-    <Document title="Error!">
-      <Layout>
-        <SiteLayout>
-          <div>
-            <h1>There was an error</h1>
-            <p>
-              {error.message &&
-              error.message.includes("Can't reach database server")
-                ? "Can't reach database server"
-                : ""}
-            </p>
-            <hr />
-          </div>
-        </SiteLayout>
-      </Layout>
-    </Document>
-  );
+	getFirebaseClient();
+	console.error(error);
+	return (
+		<Document title="Error!">
+			<Layout>
+				<SiteLayout>
+					<div>
+						<h1>
+							Something went wrong, try again later or contact us at
+							support@driftoffcoursechetek.com / 715-379-5268
+						</h1>
+						<p>
+							{error.message &&
+							error.message.includes("Can't reach database server")
+								? "Can't reach database server"
+								: ''}
+						</p>
+						<hr />
+					</div>
+				</SiteLayout>
+			</Layout>
+		</Document>
+	);
 }
 
 /**

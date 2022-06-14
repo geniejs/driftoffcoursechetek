@@ -11,7 +11,11 @@ import {
 	useNavigate,
 	useSearchParams,
 } from '@remix-run/react';
-import { isAuthenticated, getUserByRequestToken } from '~/lib/auth.server';
+import {
+	isAuthenticated,
+	getUserByRequestToken,
+	UserWithReservations,
+} from '~/lib/auth.server';
 import type { User } from '@prisma/client';
 import { UserContext } from '~/lib/react/context';
 
@@ -19,11 +23,10 @@ import { login } from '~/utils';
 import LoadingSpinner from '~/components/LoadingSpinner';
 
 export let action: ActionFunction = async ({ request, context }) => {
-	console.log('bam bam bam');
 	if (!(await isAuthenticated(request))) return redirect('/login');
 	const { user, created, error } = await getUserByRequestToken(request, true);
 	if (error) {
-		return json({ error });
+		return json({ message: error.message || error.name || error }, 500);
 	}
 	return json({ ...user, created });
 };
@@ -35,7 +38,7 @@ export let loader: LoaderFunction = async ({ request, context }) => {
 
 export default function Account() {
 	let navigate = useNavigate();
-	const { user } = useLoaderData<{ user?: User }>();
+	const { user } = useLoaderData<{ user?: UserWithReservations }>();
 	const [fbUser, authLoading] = useAuthState(getAuth());
 	const fetcher = useFetcher();
 	const [searchParams] = useSearchParams();

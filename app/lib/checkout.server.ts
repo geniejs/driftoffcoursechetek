@@ -3,12 +3,12 @@ import type {
 	Order,
 	PurchaseUnitRequest,
 } from '@paypal/checkout-server-sdk/lib/orders/lib';
-import type { AvailabilityResponse } from '~/utils';
+import { AvailabilityResponse, getTotalDaysInRange } from '~/utils';
 import { getDisplayDateRange, getImageUrl } from '~/utils';
 import { normalizeDate } from '~/utils';
 import { getReservableAvailabilityByDate, isDev } from '~/utils';
 import { getReservable } from './reservables.db.server';
-import type { Prisma, User } from '@prisma/client';
+import type { Prisma, PrismaClient, User } from '@prisma/client';
 import { getDB } from '~/lib/db.server';
 import type { ApproveAction } from '~/routes/account/checkout';
 import { sendConfirmationEmail } from '~/emailHelper.server';
@@ -25,7 +25,6 @@ export const getClient = () => {
 			: new paypal.core.LiveEnvironment(clientId, clientSecret);
 
 		client = new paypal.core.PayPalHttpClient(environment);
-
 	}
 	return client;
 };
@@ -33,6 +32,7 @@ export type CreateOrderResponse = {
 	order?: Order;
 	errorMessage?: string;
 	successData?: ApproveAction['successData'];
+	detail?: any;
 };
 export const createOrder = async (
 	startDate: string,
@@ -41,13 +41,25 @@ export const createOrder = async (
 	user: User
 ): Promise<CreateOrderResponse> => {
 	const reservable = await getReservable(reservableId);
+	if (!reservable) {
+		return { errorMessage: 'reservable not found' };
+	}
 	const availabilityByDate = (await getReservableAvailabilityByDate(
 		startDate,
 		endDate,
-		reservable,
+		reservable
 	)) as AvailabilityResponse;
+
 	if (!availabilityByDate.isAvail) {
 		return { errorMessage: 'unavailable' };
+	}
+	const minDays = availabilityByDate.minDays || 1;
+	if (minDays > 1) {
+		const startDateDate = normalizeDate(startDate);
+		const endDateDate = normalizeDate(endDate || startDate);
+		if (minDays > getTotalDaysInRange(startDateDate!, endDateDate)) {
+			return { errorMessage: 'minDays', detail: minDays };
+		}
 	}
 	let itemTotal = availabilityByDate.totalCost || 0;
 	let taxTotal = itemTotal * (availabilityByDate.tax || 0);
@@ -134,7 +146,7 @@ export const createOrder = async (
 		const response = await client.execute(request);
 		const startDateDate = normalizeDate(startDate);
 		const endDateDate = normalizeDate(endDate);
-	
+
 		if (response.result) {
 			const successData: Prisma.ReservationCreateArgs = {
 				data: {
@@ -142,7 +154,9 @@ export const createOrder = async (
 					reservableId,
 					startDate: startDateDate?.toISOString() || '',
 					endDate: endDateDate?.toISOString() || '',
-					totalCost: parseFloat((itemTotal + taxTotal + depositTotal).toFixed(2)),
+					totalCost: parseFloat(
+						(itemTotal + taxTotal + depositTotal).toFixed(2)
+					),
 					receipt: {
 						create: {
 							depositCost: parseFloat(depositTotal.toFixed(2)),
@@ -196,9 +210,8 @@ export const createOrder = async (
 				},
 			};
 		}
-
 	} catch (e) {
-		console.error('paypal error ', e)
+		console.error('paypal error ', e);
 	}
 
 	return { errorMessage: 'error' };
@@ -237,26 +250,36 @@ export const captureOrder = async (
 			create: purchaseUnitsCreate,
 		},
 	};
+	const db = getDB() as PrismaClient;
 
-	await getDB().reservation.create({
+	const reservationResult = await db.reservation.create({
 		data: createRervationData,
 	});
-
 
 	if (order.status.toLowerCase().includes('completed')) {
 		await sendConfirmationEmail(user.email!, {
 			name: user.name,
 			btnText: 'View your Reservations',
-			btnHref: `https://driftoffcourse.com/account/bookings#${createRervationData.id}`,
+			btnHref: `https://driftoffcourse.com/account/bookings#${
+				createRervationData.id || reservationResult.id
+			}`,
 			heroImgSrc: successData.heroImgSrc,
 			heroImgHref: successData.heroImgHref,
 			instructionsText: `${successData.instructionsText}<br/>${instructionsText}`,
-			reservationText: `Reservation #${createRervationData.id}
-			<br/>Your payment method was charged a total of $${createRervationData.receipt.create.amountPaid}
+			reservationText: `Reservation #${
+				createRervationData.id || reservationResult.id
+			}
+			<br/>Your payment method was charged a total of $${
+				createRervationData.receipt.create.amountPaid
+			}
 			<br/>Reservation Cost: $${createRervationData.receipt.create.reservationCost}
 			<br/>Tax: $${createRervationData.receipt.create.taxCost}
-			<br/>Refundable Deposit: $${createRervationData.receipt.create.reservationCost}<br/><br/>
-			See your <a href="https://driftoffcourse.com/account/bookings#${createRervationData.id}" target="_blank" style="text-decoration: underline; color: #000000; font-family: sans-serif;">current bookings</a> for more details.<br/>`,
+			<br/>Refundable Deposit: $${
+				createRervationData.receipt.create.reservationCost
+			}<br/><br/>
+			See your <a href="https://driftoffcourse.com/account/bookings#${
+				createRervationData.id || reservationResult.id
+			}" target="_blank" style="text-decoration: underline; color: #000000; font-family: sans-serif;">current bookings</a> for more details.<br/>`,
 		});
 	}
 	return response.result;

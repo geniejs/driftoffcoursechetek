@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { IoSearch } from 'react-icons/io5';
+import { IoAlertCircleOutline, IoSearch } from 'react-icons/io5';
 import type { LoaderFunction, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { Form, Link, useLoaderData, useSearchParams } from '@remix-run/react';
@@ -7,7 +7,6 @@ import Product from '~/components/blocks/product';
 import type { AvailabilityResponse } from '~/utils';
 import { getDisplayDateRange } from '~/utils';
 import {
-	getMDYStr,
 	getReservablesAvailabilityByDate,
 	getYMDStr,
 	normalizeDate,
@@ -116,8 +115,8 @@ export default function Availability() {
 		normalizeDate(searchParams.get('endDate'))
 	);
 	return (
-		<div className="flex flex-col">
-			<div className=" card mx-auto mb-4 w-full border-2 border-primary-focus bg-primary bg-opacity-70 shadow-xl">
+		<div className="flex flex-col gap-4">
+			<div className=" card mx-auto w-full border-2 border-primary-focus bg-primary bg-opacity-70 shadow-xl">
 				<div className="card-body">
 					<Form
 						target="?index"
@@ -184,10 +183,26 @@ export default function Availability() {
 							<div className="mt-4 flex flex-col place-items-center">
 								<span className="uppercase">{`${
 									reservable.name
-								} is available ${getDisplayDateRange(startDate, endDate)}
+								} is available ${getDisplayDateRange(
+									reservable.startDate!,
+									reservable.endDate
+								)}
 								`}</span>
+								{(reservable.minDays || 1) > 1 ? (
+									<div className="alert alert-info shadow-lg">
+										<div>
+											<IoAlertCircleOutline />
+											<span>
+												Your current dates have a minimum booking time of{' '}
+												{reservable.minDays} days
+											</span>
+										</div>
+									</div>
+								) : undefined}
 								<Link
-									to={`/booking/${reservable.id}?${searchParams.toString()}`}
+									to={`/booking/${reservable.id}?startDate=${getYMDStr(
+										reservable.startDate
+									)}&endDate=${getYMDStr(reservable.endDate)}`}
 									className="min-h12 btn btn-accent btn-block mt-4 h-auto py-2 px-6 text-lg"
 								>
 									Book Now for ${reservable.totalCost}*

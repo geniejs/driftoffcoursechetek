@@ -28,6 +28,7 @@ export type ReservableResponse = Reservable & {
 			fri: boolean;
 			sat: boolean;
 			adjustment: number | null;
+			minDays: number | null;
 		}[];
 	}[];
 	availabilityExclude?: { startDate: string; endDate: string }[];
@@ -46,6 +47,7 @@ export type ReservableResponse = Reservable & {
 		fri: boolean;
 		sat: boolean;
 		adjustment: number | null;
+		minDays: number | null;
 	}[];
 	files?: {
 		id: string;
@@ -103,6 +105,7 @@ const reservableInclude = {
 					fri: true,
 					sat: true,
 					adjustment: true,
+					minDays: true,
 				},
 			},
 		},
@@ -137,6 +140,7 @@ const reservableInclude = {
 			fri: true,
 			sat: true,
 			adjustment: true,
+			minDays: true,
 		},
 	},
 	files: { select: { id: true, name: true, file_filename: true } },

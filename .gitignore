@@ -13,3 +13,4 @@ node_modules
 api/build
 tests/state.json
 sendgrid.env
+/.mf

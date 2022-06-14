@@ -3,10 +3,15 @@ import { useEffect } from 'react';
 import { useState } from 'react';
 import groupBy from 'array.prototype.groupby';
 import classNames from 'classnames';
-import { getYMDStr, normalizeDate } from '~/utils';
+import {
+	getMinDaysForRange,
+	getValidEndDate,
+	getYMDStr,
+	normalizeDate,
+} from '~/utils';
 import { useMountEffect } from '~/lib/react/hooks';
 type CalendarProps = {
-	datesWithCost: Map<string, number>;
+	datesWithCost: Map<string, { cost: number; minDays: number }>;
 	hasDeposit?: boolean;
 	onDatesSet?: (startDate?: Date, endDate?: Date) => void;
 };
@@ -18,6 +23,17 @@ export default function Calendar({
 }: PropsWithoutRef<CalendarProps>): ReactElement {
 	const [startDate, setStartDate] = useState<Date>();
 	const [endDate, setEndDate] = useState<Date>();
+
+	useEffect(() => {
+		if (startDate && endDate) {
+			const minDays = getMinDaysForRange(startDate, endDate, datesWithCost);
+			const validEndDate = getValidEndDate(minDays, startDate, endDate);
+			if (validEndDate?.getTime() !== endDate.getTime()) {
+				setEndDate(validEndDate);
+			}
+		}
+	}, [startDate, endDate]);
+
 	useMountEffect(() => {
 		document.addEventListener('clearSearch', () => {
 			setStartDate(undefined);
@@ -230,6 +246,10 @@ export default function Calendar({
 																					currDate >= startDate &&
 																					currDate <= endDate
 																				),
+																				// 'text-info':
+																				// 	(datesWithCost.get(
+																				// 		currDate.toUTCString()
+																				// 	)?.minDays || 1) > 1,
 																			}
 																		)}
 																		onClick={() => {
@@ -253,11 +273,28 @@ export default function Calendar({
 																			{currDate.getUTCDate()}
 																		</span>
 																		{!disabled ? (
-																			<span className="stat-desc">
-																				$
-																				{datesWithCost.get(
+																			<span className="stat-desc flex flex-col">
+																				<span>
+																					$
+																					{
+																						datesWithCost.get(
+																							currDate.toUTCString()
+																						)?.cost
+																					}
+																				</span>
+																				{/* {(datesWithCost.get(
 																					currDate.toUTCString()
-																				)}
+																				)?.minDays || 1) > 1 && (
+																					<span>
+																						Min{' '}
+																						{
+																							datesWithCost.get(
+																								currDate.toUTCString()
+																							)?.minDays
+																						}{' '}
+																						days
+																					</span>
+																				)} */}
 																			</span>
 																		) : (
 																			<span className="stat-desc invisible">

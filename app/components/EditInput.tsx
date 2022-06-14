@@ -2,7 +2,7 @@ import { BsPencilSquare } from 'react-icons/bs';
 import { IoCloseSharp, IoSaveSharp } from 'react-icons/io5';
 import classNames from 'classnames';
 import { Grid } from 'react-loading-icons';
-import { useCallback, useEffect, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useState } from 'react';
 import React from 'react';
 import { useMountEffect } from '~/lib/react/hooks';
 
@@ -20,6 +20,7 @@ interface EditInput {
 	hideSave?: boolean;
 	setSuccess?: boolean;
 	inputRef?: React.RefObject<HTMLInputElement>;
+	editModeNotice?: ReactNode;
 }
 
 export default function EditInputComp({
@@ -36,6 +37,7 @@ export default function EditInputComp({
 	hideSave = false,
 	setSuccess: setSuccessManually = false,
 	inputRef,
+	editModeNotice,
 }: EditInput) {
 	const [val, setVal] = useState(value);
 	const [readOnly, setReadOnly] = useState(true);
@@ -116,6 +118,11 @@ export default function EditInputComp({
 	}, [error, onError, save, label]);
 	return (
 		<div className="form-control w-full">
+			{!inputUpdating &&
+				!updating &&
+				!readOnly &&
+				!hideSave &&
+				editModeNotice && <div>{editModeNotice}</div>}
 			<label className="input-group ">
 				{label && <span>{label}</span>}
 				<input

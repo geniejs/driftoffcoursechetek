@@ -38,7 +38,6 @@ export let action: ActionFunction = async ({ request, context }) => {
 	const { user } = await getUserByRequestToken(request);
 
 	if (!user) return redirect('/login');
-
 	const data: CheckoutAction = await request.json();
 	if (data.action === 'create') {
 		const order = await createOrder(
@@ -48,11 +47,11 @@ export let action: ActionFunction = async ({ request, context }) => {
 			user
 		);
 		if (order.errorMessage) {
-			return json({ error: order.errorMessage });
+			return json({ error: order.errorMessage, detail: order.detail }, 500);
 		} else if (order?.order?.id) {
 			return json({ id: order.order.id, successData: order.successData });
 		} else {
-			return json({ error: 'error' });
+			return json({ error: 'error' }, 500);
 		}
 	} else if (data.action === 'approve' && data.orderID) {
 		const order = await captureOrder(data, user);

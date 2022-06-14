@@ -61,247 +61,377 @@ export const normalizeDate = (
 };
 
 export const getReservablesAvailability = (
-  reservables: ReservableResponse[],
-  reservations: ReservationsResponse[]
+	reservables: ReservableResponse[],
+	reservations: ReservationsResponse[]
 ) => {
-  const reservablesAvailability = new Map<
-    ReservableResponse,
-    Map<string, number>
-  >();
-  reservables.forEach((reservable) => {
-    reservablesAvailability.set(
-      reservable,
-      getReservableDates(reservable, reservations)
-    );
-  });
-  return reservablesAvailability;
+	const reservablesAvailability = new Map<
+		ReservableResponse,
+		Map<
+			string,
+			{
+				cost: number;
+				minDays: number;
+			}
+		>
+	>();
+	reservables.forEach((reservable) => {
+		reservablesAvailability.set(
+			reservable,
+			getReservableDates(reservable, reservations)
+		);
+	});
+	return reservablesAvailability;
 };
 
 export const getPriceAdjustments = (
-  priceAdjustments: ReservableResponse["priceAdjustment"]
+	priceAdjustments: ReservableResponse['priceAdjustment']
 ) => {
-  const adjustments = [0, 0, 0, 0, 0, 0, 0];
-  if (priceAdjustments && priceAdjustments.length) {
-    priceAdjustments.forEach((priceAdjustment) => {
-      if (priceAdjustment.adjustment) {
-        if (priceAdjustment.sun) {
-          adjustments[0] = adjustments[0] + priceAdjustment.adjustment;
-        }
-        if (priceAdjustment.mon) {
-          adjustments[1] = adjustments[1] + priceAdjustment.adjustment;
-        }
-        if (priceAdjustment.tue) {
-          adjustments[2] = adjustments[2] + priceAdjustment.adjustment;
-        }
-        if (priceAdjustment.wed) {
-          adjustments[3] = adjustments[3] + priceAdjustment.adjustment;
-        }
-        if (priceAdjustment.thu) {
-          adjustments[4] = adjustments[4] + priceAdjustment.adjustment;
-        }
-        if (priceAdjustment.fri) {
-          adjustments[5] = adjustments[5] + priceAdjustment.adjustment;
-        }
-        if (priceAdjustment.sat) {
-          adjustments[6] = adjustments[6] + priceAdjustment.adjustment;
-        }
-      }
-    });
-  }
-  return adjustments;
+	const adjustments = [0, 0, 0, 0, 0, 0, 0];
+	if (priceAdjustments && priceAdjustments.length) {
+		priceAdjustments.forEach((priceAdjustment) => {
+			if (priceAdjustment.adjustment) {
+				if (priceAdjustment.sun) {
+					adjustments[0] = adjustments[0] + priceAdjustment.adjustment;
+				}
+				if (priceAdjustment.mon) {
+					adjustments[1] = adjustments[1] + priceAdjustment.adjustment;
+				}
+				if (priceAdjustment.tue) {
+					adjustments[2] = adjustments[2] + priceAdjustment.adjustment;
+				}
+				if (priceAdjustment.wed) {
+					adjustments[3] = adjustments[3] + priceAdjustment.adjustment;
+				}
+				if (priceAdjustment.thu) {
+					adjustments[4] = adjustments[4] + priceAdjustment.adjustment;
+				}
+				if (priceAdjustment.fri) {
+					adjustments[5] = adjustments[5] + priceAdjustment.adjustment;
+				}
+				if (priceAdjustment.sat) {
+					adjustments[6] = adjustments[6] + priceAdjustment.adjustment;
+				}
+			}
+		});
+	}
+	return adjustments;
+};
+
+export const getMinDays = (
+	priceAdjustments: ReservableResponse['priceAdjustment']
+) => {
+	const minDays = [1, 1, 1, 1, 1, 1, 1];
+	if (priceAdjustments && priceAdjustments.length) {
+		priceAdjustments.forEach((priceAdjustment) => {
+			if (priceAdjustment.minDays) {
+				if (priceAdjustment.sun) {
+					minDays[0] = Math.max(minDays[0], priceAdjustment.minDays);
+				}
+				if (priceAdjustment.mon) {
+					minDays[1] = Math.max(minDays[1], priceAdjustment.minDays);
+				}
+				if (priceAdjustment.tue) {
+					minDays[2] = Math.max(minDays[2], priceAdjustment.minDays);
+				}
+				if (priceAdjustment.wed) {
+					minDays[3] = Math.max(minDays[3], priceAdjustment.minDays);
+				}
+				if (priceAdjustment.thu) {
+					minDays[4] = Math.max(minDays[4], priceAdjustment.minDays);
+				}
+				if (priceAdjustment.fri) {
+					minDays[5] = Math.max(minDays[5], priceAdjustment.minDays);
+				}
+				if (priceAdjustment.sat) {
+					minDays[6] = Math.max(minDays[6], priceAdjustment.minDays);
+				}
+			}
+		});
+	}
+	return minDays;
 };
 
 export const getReservableDates = (
-  reservable: ReservableResponse,
-  reservations: ReservationsResponse[]
+	reservable: ReservableResponse,
+	reservations: ReservationsResponse[]
 ) => {
-  const today = normalizeDate(new Date()) as Date;
+	const today = normalizeDate(new Date()) as Date;
 
-  const reservableDates = new Map<string, number>();
-  const reservableAdjusmtments = getPriceAdjustments(
-    reservable.priceAdjustment
-  );
-  reservable.availabilityInclude?.forEach((include) => {
-    let currDate = normalizeDate(include.startDate) as Date;
-    const endDate = normalizeDate(include.endDate) as Date;
-    const cost = include.cost;
-    if (currDate < today && cost) {
-      currDate = today;
-    }
-    const includeAdjusmtments = getPriceAdjustments(include.priceAdjustment);
+	const reservableDates = new Map<string, { cost: number; minDays: number }>();
+	const reservableAdjusmtments = getPriceAdjustments(
+		reservable.priceAdjustment
+	);
+	const reservablMinDays = getMinDays(reservable.priceAdjustment);
+	reservable.availabilityInclude?.forEach((include) => {
+		let currDate = normalizeDate(include.startDate) as Date;
+		const endDate = normalizeDate(include.endDate) as Date;
+		const cost = include.cost;
+		if (currDate < today && cost) {
+			currDate = today;
+		}
+		const includeAdjusmtments = getPriceAdjustments(include.priceAdjustment);
+		const includeMinDays = getMinDays(include.priceAdjustment);
+		while (currDate <= endDate && cost) {
+			let adjustment =
+				reservableAdjusmtments[currDate.getUTCDay()] +
+				includeAdjusmtments[currDate.getUTCDay()];
 
-    while (currDate <= endDate && cost) {
-      let adjustment =
-        reservableAdjusmtments[currDate.getUTCDay()] +
-        includeAdjusmtments[currDate.getUTCDay()];
+			if (
+				reservableDates.get(currDate.toUTCString()) ||
+				-1 < cost + adjustment
+			) {
+				reservableDates.set(currDate.toUTCString(), {
+					cost: cost + adjustment,
+					minDays: Math.max(
+						reservablMinDays[currDate.getUTCDay()],
+						includeMinDays[currDate.getUTCDay()]
+					),
+				});
+			}
+			currDate.setUTCDate(currDate.getUTCDate() + 1);
+		}
+	});
+	reservable.availabilityExclude?.forEach((exclude) => {
+		const currDate = normalizeDate(exclude.startDate) as Date;
 
-      if (
-        reservableDates.get(currDate.toUTCString()) ||
-        -1 < cost + adjustment
-      ) {
-        reservableDates.set(currDate.toUTCString(), cost + adjustment);
-      }
-      currDate.setUTCDate(currDate.getUTCDate() + 1);
-    }
-  });
-  reservable.availabilityExclude?.forEach((exclude) => {
-    const currDate = normalizeDate(exclude.startDate) as Date;
-
-    const endDate = normalizeDate(exclude.endDate) as Date;
-    if (currDate < today) {
-      currDate.setUTCDate(today.getUTCDate());
-    }
-    while (currDate <= endDate) {
-      reservableDates.delete(currDate.toUTCString());
-      currDate.setUTCDate(currDate.getUTCDate() + 1);
-    }
-  });
-  reservations?.forEach((reservation) => {
-    if (reservation.reservableId === reservable.id) {
-      const currDate = normalizeDate(reservation.startDate) as Date;
-      const endDate = reservation.endDate
-        ? (normalizeDate(reservation.endDate) as Date)
-        : currDate;
-      while (currDate <= endDate) {
-        reservableDates.delete(currDate.toUTCString());
-        currDate.setUTCDate(currDate.getUTCDate() + 1);
-      }
-    }
-  });
-  return new Map(
-    [...reservableDates].sort((a: [string, number], b: [string, number]) =>
-      new Date(a[0]) < new Date(b[0]) ? -1 : 1
-    )
-  );
+		const endDate = normalizeDate(exclude.endDate) as Date;
+		if (currDate < today) {
+			currDate.setUTCDate(today.getUTCDate());
+		}
+		while (currDate <= endDate) {
+			reservableDates.delete(currDate.toUTCString());
+			currDate.setUTCDate(currDate.getUTCDate() + 1);
+		}
+	});
+	reservations?.forEach((reservation) => {
+		if (reservation.reservableId === reservable.id) {
+			const currDate = normalizeDate(reservation.startDate) as Date;
+			const endDate = reservation.endDate
+				? (normalizeDate(reservation.endDate) as Date)
+				: currDate;
+			while (currDate <= endDate) {
+				reservableDates.delete(currDate.toUTCString());
+				currDate.setUTCDate(currDate.getUTCDate() + 1);
+			}
+		}
+	});
+	return new Map(
+		[...reservableDates].sort(
+			(
+				a: [
+					string,
+					{
+						cost: number;
+						minDays: number;
+					}
+				],
+				b: [
+					string,
+					{
+						cost: number;
+						minDays: number;
+					}
+				]
+			) => (new Date(a[0]) < new Date(b[0]) ? -1 : 1)
+		)
+	);
 };
 
 export const getYMDStr = (date: Date | undefined | null) => {
-  return date ? date.toISOString().split("T")[0] : "";
+	date = typeof date !== 'object' ? normalizeDate(date) : date;
+	return date ? date.toISOString().split('T')[0] : '';
 };
 
 export const getMDYStr = (date: Date | undefined | null) => {
-  const ymd = getYMDStr(date).split("-");
-  return `${ymd[1]}/${ymd[2]}/${ymd[0]}`;
+	const ymd = getYMDStr(date).split('-');
+	return `${ymd[1]}/${ymd[2]}/${ymd[0]}`;
 };
 
 export const getDisplayDateRange = (
-  startDate: Date,
-  endDate?: Date | null,
-  bang = "!"
+	startDate: Date,
+	endDate?: Date | null,
+	bang = '!'
 ) => {
-  startDate = normalizeDate(startDate)!;
-  endDate = normalizeDate(endDate);
-  return ` ${getMDYStr(startDate)}${
-    endDate && startDate?.toUTCString() !== endDate?.toUTCString()
-      ? ` - ${getMDYStr(endDate)}${bang}`
-      : bang
-  }`;
+	startDate = normalizeDate(startDate)!;
+	endDate = normalizeDate(endDate);
+	return ` ${getMDYStr(startDate)}${
+		endDate && startDate?.toUTCString() !== endDate?.toUTCString()
+			? ` - ${getMDYStr(endDate)}${bang}`
+			: bang
+	}`;
+};
+
+export const getMinDaysForRange = (
+	startDate: Date,
+	endDate: Date | null,
+	datesWithCost: Map<string, { cost: number; minDays: number }>
+) => {
+	startDate = normalizeDate(startDate)!;
+	endDate = normalizeDate(endDate || startDate);
+	let minDays = 1;
+	let currDate = normalizeDate(startDate) as Date;
+	while (currDate <= endDate!) {
+		const currMinDays = datesWithCost.get(currDate.toUTCString())?.minDays || 1;
+		minDays = Math.max(minDays, currMinDays);
+		currDate.setUTCDate(currDate.getUTCDate() + 1);
+	}
+	return minDays;
+};
+const ONE_DAY = 1000 * 60 * 60 * 24;
+
+export const getTotalDaysInRange = (startDate: Date, endDate: Date | null) => {
+	startDate = normalizeDate(startDate)!;
+	endDate = normalizeDate(endDate || startDate);
+	const differenceMs = Math.abs(endDate!.getTime() - startDate.getTime());
+	return Math.round(differenceMs / ONE_DAY) + 1;
+};
+
+export const getValidEndDate = (
+	minDays: number,
+	startDate: Date,
+	endDate: Date | null
+) => {
+	startDate = normalizeDate(startDate)!;
+	endDate = normalizeDate(endDate || startDate);
+	if (minDays > 1) {
+		const totalDays = getTotalDaysInRange(startDate, endDate);
+		if (totalDays < minDays) {
+			const currStart = normalizeDate(startDate) as Date;
+			currStart.setUTCDate(currStart.getUTCDate() + (minDays - 1));
+			return currStart;
+		}
+	}
+	return endDate!;
 };
 
 export type AvailabilityResponse = ReservableResponse & {
-  isAvail?: boolean;
-  availDates?: string[];
-  unavailDates?: string[];
-  costs?: number[];
-  totalCost?: number;
+	isAvail?: boolean;
+	availDates?: string[];
+	unavailDates?: string[];
+	costs?: number[];
+	totalCost?: number;
+	minDays?: number;
+	startDate?: Date;
+	endDate?: Date;
 };
 
 export const getReservableAvailabilityResponse = (
-  startDateDate: Date,
-  endDateDate: Date,
-  availability: Map<string, number>,
-  reservable: ReservableResponse
+	initialStartDate: Date | string,
+	endDateDate: Date | string,
+	availability: Map<
+		string,
+		{
+			cost: number;
+			minDays: number;
+		}
+	>,
+	reservable: ReservableResponse,
+	checkMinDays = true
 ): AvailabilityResponse => {
-  const availDates: string[] = [];
-  const unavailDates: string[] = [];
-  const costs: number[] = [];
-  startDateDate = new Date(startDateDate);
-  endDateDate = new Date(endDateDate);
+	const availDates: string[] = [];
+	const unavailDates: string[] = [];
+	const costs: number[] = [];
+	initialStartDate = normalizeDate(initialStartDate) as Date;
+	const startDateDate = normalizeDate(initialStartDate) as Date;
+	endDateDate = new Date(endDateDate);
+	let minDays = 1;
+	if (checkMinDays) {
+		minDays = getMinDaysForRange(startDateDate, endDateDate, availability);
+		const validEndDate = getValidEndDate(minDays, startDateDate, endDateDate);
+		if (validEndDate?.getTime() !== endDateDate.getTime()) {
+			endDateDate = validEndDate;
+		}
+	}
 
-  let startDate = startDateDate.toUTCString();
+	let startDate = startDateDate.toUTCString();
 
-  let totalCost: number = 0;
-  while (startDateDate <= endDateDate) {
-    if (availability.has(startDate)) {
-      availDates.push(getMDYStr(startDateDate));
-      costs.push(availability.get(startDate) || 0);
-      totalCost += availability.get(startDate) || 0;
-    } else {
-      unavailDates.push(getMDYStr(startDateDate));
-    }
-    startDateDate.setUTCDate(startDateDate.getUTCDate() + 1);
-    startDate = startDateDate.toUTCString();
-  }
-  const isAvail = unavailDates.length === 0;
-
-  return {
-    ...reservable,
-    isAvail,
-    availDates: availDates,
-    unavailDates: !isAvail ? unavailDates : undefined,
-    costs: isAvail ? costs : undefined,
-    totalCost,
-  };
+	let totalCost: number = 0;
+	while (startDateDate <= endDateDate) {
+		if (availability.has(startDate)) {
+			availDates.push(getMDYStr(startDateDate));
+			costs.push(availability.get(startDate)?.cost || 0);
+			totalCost += availability.get(startDate)?.cost || 0;
+		} else {
+			unavailDates.push(getMDYStr(startDateDate));
+		}
+		startDateDate.setUTCDate(startDateDate.getUTCDate() + 1);
+		startDate = startDateDate.toUTCString();
+	}
+	const isAvail = unavailDates.length === 0;
+	return {
+		...reservable,
+		isAvail,
+		availDates: availDates,
+		unavailDates: !isAvail ? unavailDates : undefined,
+		costs: isAvail ? costs : undefined,
+		minDays,
+		startDate: initialStartDate,
+		endDate: endDateDate,
+		totalCost,
+	};
 };
 
 export const getReservablesAvailabilityByDate = async (
-  startDate: string,
-  endDate: string,
-  reservables?: ReservableResponse[],
-  reservations?: ReservationsResponse[]
+	startDate: string,
+	endDate: string,
+	reservables?: ReservableResponse[],
+	reservations?: ReservationsResponse[]
 ) => {
-  const availabilityResponse: AvailabilityResponse[] = reservables || [];
+	let availabilityResponse: AvailabilityResponse[] = reservables || [];
 
-  if (startDate && endDate) {
-    const startDateDate = normalizeDate(startDate);
-    const endDateDate = normalizeDate(endDate);
-    if (startDateDate && endDateDate) {
-      startDate = startDateDate.toUTCString();
-      endDate = endDateDate.toUTCString();
-      reservables = reservables || (await getReservables());
-      reservations = reservations || (await getReservations());
-      const reservablesAvailability = getReservablesAvailability(
-        reservables,
-        reservations
-      );
-      for (const [reservable, availability] of reservablesAvailability) {
-        availabilityResponse.push(
-          getReservableAvailabilityResponse(
-            startDateDate,
-            endDateDate,
-            availability,
-            reservable
-          )
-        );
-      }
-    }
-  }
-  return availabilityResponse;
+	if (startDate && endDate) {
+		availabilityResponse = [];
+		const startDateDate = normalizeDate(startDate);
+		const endDateDate = normalizeDate(endDate);
+		if (startDateDate && endDateDate) {
+			startDate = startDateDate.toUTCString();
+			endDate = endDateDate.toUTCString();
+			reservables = reservables || (await getReservables());
+			reservations = reservations || (await getReservations());
+			const reservablesAvailability = getReservablesAvailability(
+				reservables,
+				reservations
+			);
+			for (const [reservable, availability] of reservablesAvailability) {
+				availabilityResponse.push(
+					getReservableAvailabilityResponse(
+						startDateDate,
+						endDateDate,
+						availability,
+						reservable
+					)
+				);
+			}
+		}
+	}
+	return availabilityResponse;
 };
 
 export const getReservableAvailabilityByDate = async (
-  startDate: string,
-  endDate: string,
-  reservable: ReservableResponse,
-  reservations?: ReservationsResponse[]
+	startDate: string,
+	endDate: string,
+	reservable: ReservableResponse,
+	reservations?: ReservationsResponse[],
+	checkMinDays = true
 ): Promise<AvailabilityResponse | void> => {
-  endDate = endDate || startDate;
-  if (startDate && endDate) {
-    const startDateDate = normalizeDate(startDate);
-    const endDateDate = normalizeDate(endDate);
-    if (startDateDate && endDateDate) {
-      startDate = startDateDate.toUTCString();
-      endDate = endDateDate.toUTCString();
-      reservations = reservations ?? (await getReservations());
-      const availability = getReservableDates(reservable, reservations);
-      return getReservableAvailabilityResponse(
-        startDateDate,
-        endDateDate,
-        availability,
-        reservable
-      );
-    }
-  }
+	endDate = endDate || startDate;
+	if (startDate && endDate) {
+		const startDateDate = normalizeDate(startDate);
+		const endDateDate = normalizeDate(endDate);
+		if (startDateDate && endDateDate) {
+			startDate = startDateDate.toUTCString();
+			endDate = endDateDate.toUTCString();
+			reservations = reservations ?? (await getReservations());
+			const availability = getReservableDates(reservable, reservations);
+			return getReservableAvailabilityResponse(
+				startDateDate,
+				endDateDate,
+				availability,
+				reservable,
+				checkMinDays
+			);
+		}
+	}
 };
 
 export const getCancellationCost = (
