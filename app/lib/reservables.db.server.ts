@@ -179,7 +179,10 @@ export const getReservables = async (
 		},
 	})) as unknown as ReservableResponse[];
 	response = response.filter(
-		(r) => r.isActive || process.env.GENIE_ENV === 'development'
+		(r) =>
+			r.isActive ||
+			process.env.GENIE_ENV === 'development' ||
+			process.env.GENIE_ENV === 'stage'
 	);
 	return response;
 };
@@ -193,7 +196,9 @@ export const getReservable = async (
 		include: reservableInclude,
 	})) as unknown as ReservableResponse | undefined;
 	response =
-		response?.isActive || process.env.GENIE_ENV === 'development'
+		response?.isActive ||
+		process.env.GENIE_ENV === 'development' ||
+		process.env.GENIE_ENV === 'stage'
 			? response
 			: undefined;
 
