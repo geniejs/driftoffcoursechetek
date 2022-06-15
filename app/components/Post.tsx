@@ -1,6 +1,5 @@
 import { PropsWithChildren, ReactElement, useCallback, useEffect } from 'react';
 import { useState } from 'react';
-import { Dialog } from '@headlessui/react';
 import type { Post } from '@prisma/client';
 import { DocumentRenderer } from '@keystone-6/document-renderer';
 import classNames from 'classnames';
@@ -30,70 +29,72 @@ export default function PostComp({
 	}, []);
 
 	return (
-    <div>
-      {post.status === "published" ? (
-        <div
-          className={classNames({
-            "card bg-accent text-accent-content shadow-xl": true,
-            "lg:card-side": image,
-          })}
-        >
-          {image && img ? (
-            <figure>
-              <picture
-                className={classNames({
-                  visible: imgLoaded,
-                  invisible: !imgLoaded,
-                })}
-              >
-                <source
-                  media={`(min-width:${img.md.width}px)`}
-                  srcSet={getImageUrl("", img.lg, maxWidth)}
-                />
-                <source
-                  media={`(min-width:${img.sm.width}px)`}
-                  srcSet={getImageUrl("", img.md, maxWidth)}
-                />
-                <img
-                  onLoad={onLoad}
-                  loading="lazy"
-                  src={getImageUrl("", img.sm, maxWidth)}
-                  alt={image.alt || image.name}
-                  width={img.full.width}
-                  height={img.full.height}
-                />
-              </picture>
-              {img.base64 && img.base64.base64Data && (
-                <img
-                  className={classNames({
-                    hidden: imgLoaded,
-                  })}
-                  src={img.base64.base64Data}
-                  alt={image.alt || image.name}
-                  width={img.full.width}
-                  height={img.full.height}
-                />
-              )}
-            </figure>
-          ) : (
-            ""
-          )}
-          <div className="card-body">
-            <h2 className="card-title">{post.title}</h2>
-            {post.content ? (
-              <DocumentRenderer document={post.content as any} />
-            ) : (
-              ""
-            )}
-            {children}
-            {/* <div className="card-actions justify-end">
+		<div>
+			{post.status === 'published' ? (
+				<div
+					className={classNames({
+						'card bg-accent text-accent-content shadow-xl': true,
+						'lg:card-side': image,
+					})}
+				>
+					{image && img ? (
+						<figure>
+							<picture
+								className={classNames({
+									visible: imgLoaded,
+									invisible: !imgLoaded,
+								})}
+							>
+								<source
+									media={`(min-width:${img.md.width}px)`}
+									srcSet={getImageUrl('', img.lg, maxWidth)}
+								/>
+								<source
+									media={`(min-width:${img.sm.width}px)`}
+									srcSet={getImageUrl('', img.md, maxWidth)}
+								/>
+								<img
+									onLoad={onLoad}
+									loading="lazy"
+									src={getImageUrl('', img.sm, maxWidth)}
+									alt={image.alt || image.name}
+									width={img.full.width}
+									height={img.full.height}
+								/>
+							</picture>
+							{img.base64 && img.base64.base64Data && (
+								<img
+									className={classNames({
+										hidden: imgLoaded,
+									})}
+									src={img.base64.base64Data}
+									alt={image.alt || image.name}
+									width={img.full.width}
+									height={img.full.height}
+								/>
+							)}
+						</figure>
+					) : (
+						''
+					)}
+					<div className="card-body">
+						<h2 className="card-title text-2xl">{post.title}</h2>
+						{post.content ? (
+							<div className="text-lg">
+								<DocumentRenderer document={post.content as any} />
+							</div>
+						) : (
+							''
+						)}
+						{children}
+						{/* <div className="card-actions justify-end">
 							<button className="btn btn-primary">Listen</button>
 						</div> */}
-          </div>
-        </div>
-      ) : (
-        ""
-      )}
-    </div>
-  );
+					</div>
+				</div>
+			) : (
+				''
+			)}
+		</div>
+	);
 }

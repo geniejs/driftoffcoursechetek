@@ -1,13 +1,15 @@
 import { Link } from '@remix-run/react';
 import type { ReactElement } from 'react';
-import { AvailabilityResponse } from '~/utils';
+import type { AvailabilityResponse } from '~/utils';
 
 type Props = {
 	availabilityResponse: AvailabilityResponse;
+	minimal?: boolean;
 };
 
 export default function NotAvailable({
 	availabilityResponse,
+	minimal
 }: Props): ReactElement {
 	return (
 		<div className="mt-4 flex flex-col place-items-center">
@@ -33,11 +35,12 @@ export default function NotAvailable({
 			) : (
 				''
 			)}
+			{!minimal && 
 			<Link to={`/availability/${availabilityResponse.id}`}>
 				<h1 className="title-font font-medium uppercase underline underline-offset-4 hover:no-underline">
 					See all availability
 				</h1>
-			</Link>
+			</Link>}
 		</div>
 	);
 }

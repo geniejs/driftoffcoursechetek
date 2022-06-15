@@ -1,10 +1,17 @@
-import { PropsWithoutRef, ReactElement, useEffect } from 'react';
+import type { PropsWithoutRef, ReactElement } from 'react';
+import { useEffect } from 'react';
 import { useState } from 'react';
 import groupBy from 'array.prototype.groupby';
 import classNames from 'classnames';
-import { getYMDStr } from '~/utils';
+import {
+	getMinDaysForRange,
+	getValidEndDate,
+	getYMDStr,
+	normalizeDate,
+} from '~/utils';
+import { useMountEffect } from '~/lib/react/hooks';
 type CalendarProps = {
-	datesWithCost: Map<string, number>;
+	datesWithCost: Map<string, { cost: number; minDays: number }>;
 	hasDeposit?: boolean;
 	onDatesSet?: (startDate?: Date, endDate?: Date) => void;
 };
@@ -16,6 +23,25 @@ export default function Calendar({
 }: PropsWithoutRef<CalendarProps>): ReactElement {
 	const [startDate, setStartDate] = useState<Date>();
 	const [endDate, setEndDate] = useState<Date>();
+
+	useEffect(() => {
+		if (startDate && endDate) {
+			const minDays = getMinDaysForRange(startDate, endDate, datesWithCost);
+			const validEndDate = getValidEndDate(minDays, startDate, endDate);
+			if (validEndDate?.getTime() !== endDate.getTime()) {
+				setEndDate(validEndDate);
+			}
+		}
+	}, [startDate, endDate]);
+
+	useMountEffect(() => {
+		document.addEventListener('clearSearch', () => {
+			setStartDate(undefined);
+			setEndDate(undefined);
+			setOnStartDate(true);
+		});
+	});
+
 	const [onStartDate, setOnStartDate] = useState(true);
 	// setup all the dates for calendar display
 	const datesByYear = groupBy(
@@ -80,8 +106,13 @@ export default function Calendar({
 						placeholder="Start Date"
 						className="input input-bordered input-lg m-1 bg-base-200 text-base-content"
 						onChange={(val) => {
-							val?.target?.valueAsDate && setStartDate(val.target.valueAsDate);
-							val?.target?.valueAsDate && setEndDate(val.target.valueAsDate);
+							val?.target?.valueAsDate &&
+								setStartDate(
+									normalizeDate(val.target.valueAsDate) || undefined
+								);
+							val?.target?.valueAsDate &&
+								(!endDate || endDate < val.target.valueAsDate) &&
+								setEndDate(normalizeDate(val.target.valueAsDate) || undefined);
 						}}
 					/>
 				</div>
@@ -100,7 +131,7 @@ export default function Calendar({
 						onChange={(val) => {
 							val?.target?.valueAsDate &&
 								(!startDate || startDate <= val.target.valueAsDate) &&
-								setEndDate(val.target.valueAsDate);
+								setEndDate(normalizeDate(val.target.valueAsDate) || undefined);
 						}}
 					/>
 				</div>
@@ -215,6 +246,10 @@ export default function Calendar({
 																					currDate >= startDate &&
 																					currDate <= endDate
 																				),
+																				// 'text-info':
+																				// 	(datesWithCost.get(
+																				// 		currDate.toUTCString()
+																				// 	)?.minDays || 1) > 1,
 																			}
 																		)}
 																		onClick={() => {
@@ -238,11 +273,28 @@ export default function Calendar({
 																			{currDate.getUTCDate()}
 																		</span>
 																		{!disabled ? (
-																			<span className="stat-desc">
-																				$
-																				{datesWithCost.get(
+																			<span className="stat-desc flex flex-col">
+																				<span>
+																					$
+																					{
+																						datesWithCost.get(
+																							currDate.toUTCString()
+																						)?.cost
+																					}
+																				</span>
+																				{/* {(datesWithCost.get(
 																					currDate.toUTCString()
-																				)}
+																				)?.minDays || 1) > 1 && (
+																					<span>
+																						Min{' '}
+																						{
+																							datesWithCost.get(
+																								currDate.toUTCString()
+																							)?.minDays
+																						}{' '}
+																						days
+																					</span>
+																				)} */}
 																			</span>
 																		) : (
 																			<span className="stat-desc invisible">

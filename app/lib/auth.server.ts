@@ -1,25 +1,26 @@
-
+import type { UserRecord, DecodedIdToken } from 'firebase-admin/auth';
+import { getAuth } from 'firebase-admin/auth';
+import { getFirebaseAdmin } from './firebase/firebase.server';
 import type {
 	Prisma,
 	User,
-	Reservation
+	Reservation,
+	PrismaClient,
+	PhoneNumber,
 } from '@prisma/client';
 import { getDB } from '~/lib/db.server';
 
 import * as cookie from 'cookie';
-import { nanoid } from 'nanoid';
 import { cookieName } from '~/config';
 export const getDecodedToken = async (
 	request: any
-): Promise<any | null> => {
-	const cookieHeader = request.headers.get('Cookie');
-	const token = cookieHeader
-		? cookie.parse(cookieHeader)[cookieName]
-		: null;
-
+): Promise<DecodedIdToken | null> => {
+	getFirebaseAdmin();
+	const cookieHeader = request?.headers?.get('Cookie');
+	const token = cookieHeader ? cookie.parse(cookieHeader)[cookieName] : null;
 	let decodedToken = null;
 	try {
-		decodedToken = token ? null : null;
+		decodedToken = token ? await getAuth().verifyIdToken(token) : null;
 	} catch (e) {
 		console.error('error decoding token', e);
 	}
@@ -30,7 +31,7 @@ export const getDecodedToken = async (
 export const isAuthenticated = async (
 	request: any,
 	validateAndReturnUser: boolean = false
-): Promise<{ user: any | null } | any> => {
+): Promise<{ user: UserRecord | null } | any> => {
 	let authenticated = false;
 	const decodedToken = await getDecodedToken(request);
 	authenticated = decodedToken ? true : false;
@@ -47,28 +48,49 @@ export const isAuthenticated = async (
 export type UserWithReservations =
 	| (User & {
 			reservations: Reservation[];
+			phoneNumbers: PhoneNumber[];
 	  })
 	| null;
 export const getUserByToken = async (
-	decodedToken: any | null,
-	updateUser = false
+	decodedToken: DecodedIdToken | null,
+	updateUser = false,
+	request?: Request
 ): Promise<{
 	user?: UserWithReservations | null;
 	error?: any;
 	created: boolean;
 }> => {
+	getFirebaseAdmin();
+	const db = getDB() as PrismaClient;
+
 	let created = false;
 	let user: UserWithReservations | null = null;
 	let error = null;
 	let operation = '';
+	let rName: string | undefined = '';
+	let rEmail: string | undefined = '';
+	let rPhone: string | undefined = '';
+
+	if (request && !request.url.includes('checkout')) {
+		try {
+			const data: Record<string, string> | undefined = await request.json();
+			rName = data?.name;
+			rEmail = data?.email;
+			rPhone = data?.phone;
+			if (rName || rEmail || rPhone) {
+				updateUser = true;
+			}
+		} catch {}
+	}
 
 	if (!error && decodedToken) {
 		const firebaseId = decodedToken.uid;
 		try {
-			user = await getDB().user.findUnique({
+			user = await db.user.findUnique({
 				where: { firebaseId },
 				include: {
 					reservations: true,
+					phoneNumbers: true,
 				},
 			});
 			if (user && updateUser) {
@@ -80,42 +102,43 @@ export const getUserByToken = async (
 			console.error(e);
 			error = e;
 		}
-
 		if (operation) {
-			let userRecord: any | null = null;
+			let userRecord: UserRecord | null = null;
 			try {
-				userRecord = null;
+				userRecord = await getAuth().getUser(firebaseId);
 			} catch (e) {
+				console.error(e);
 				error = e;
 			}
-			if (userRecord) {
-				const phoneNumbers = userRecord.phoneNumber
-					? {
-							connectOrCreate: {
-								where: {
-									value: userRecord.phoneNumber,
+			if (userRecord || firebaseId) {
+				const phoneNumbers =
+					userRecord?.phoneNumber || rPhone
+						? {
+								connectOrCreate: {
+									where: {
+										value: userRecord?.phoneNumber || rPhone,
+									},
+									create: {
+										type: 'mobile',
+										value: userRecord?.phoneNumber || rPhone,
+									},
 								},
-								create: {
-									type: 'mobile',
-									value: userRecord.phoneNumber,
-								},
-							},
-					  }
-					: undefined;
+						  }
+						: undefined;
 				if (operation === 'create') {
 					const data: Prisma.UserCreateInput = {
-						id: nanoid(),
-						name: userRecord.displayName || '',
-						email: userRecord.email || `${firebaseId}@anonuser`,
+						name: userRecord?.displayName || rName || '',
+						email: userRecord?.email || rEmail || `${firebaseId}@anonuser`,
 						firebaseId,
 						phoneNumbers,
 					};
 
 					try {
-						user = await getDB().user.create({
+						user = await db.user.create({
 							data,
 							include: {
 								reservations: true,
+								phoneNumbers: true,
 							},
 						});
 						created = true;
@@ -125,16 +148,17 @@ export const getUserByToken = async (
 					}
 				} else if (operation === 'update') {
 					const data: Prisma.UserUpdateInput = {
-						name: userRecord.displayName || '',
-						email: userRecord.email || '',
+						name: userRecord?.displayName || rName || '',
+						email: userRecord?.email || rEmail || `${firebaseId}@anonuser`,
 						phoneNumbers,
 					};
 					try {
-						user = await getDB().user.update({
+						user = await db.user.update({
 							data,
 							where: { firebaseId },
 							include: {
 								reservations: true,
+								phoneNumbers: true,
 							},
 						});
 					} catch (e) {
@@ -150,5 +174,7 @@ export const getUserByToken = async (
 };
 
 // @ts-ignore
-export const getUserByRequestToken = async (request: any, updateUser = false) =>
-	await getUserByToken(await getDecodedToken(request), updateUser);
+export const getUserByRequestToken = async (
+	request: Request,
+	updateUser = false
+) => await getUserByToken(await getDecodedToken(request), updateUser, request);

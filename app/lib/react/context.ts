@@ -1,5 +1,5 @@
 import React from "react";
-import type { User } from '@prisma/client';
+import { UserWithReservations } from '../auth.server';
 
 export const RootContext = React.createContext({
 	darkmode: false,
@@ -7,5 +7,5 @@ export const RootContext = React.createContext({
 });
 
 export const UserContext = React.createContext({
-	user: undefined as User | undefined,
+	user: undefined as UserWithReservations | undefined,
 });

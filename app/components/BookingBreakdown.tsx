@@ -37,48 +37,48 @@ export default function BookingBreakdown({
 	return (
 		<div>
 			{availabilityResponse.isAvail && (
-				<div className="card relative ml-auto mt-4 w-full bg-accent shadow-xl lg:w-1/2">
+				<div className="card relative ml-auto mt-4 w-full bg-secondary shadow-xl">
 					<div className="card-body">
 						<div className="overflow-x-auto">
 							<div className=" w-full border-0 border-t-2">
 								<div
 									tabIndex={0}
-									className="collapse-arrow collapse justify-end text-accent-content"
+									className="collapse-arrow collapse justify-end text-secondary-content"
 								>
 									<input type="checkbox" />
-									<div className="collapse-title">
+									<div className="collapse-title pr-8 sm:pr-12">
 										<table className="table">
 											<tbody>
 												<tr>
-													<td className="bg-accent py-0 pt-1 text-right text-sm font-semibold uppercase text-accent-content lg:text-base">
+													<td className=" bg-secondary py-0 px-1 pt-1 text-right text-xs font-semibold uppercase text-secondary-content sm:px-4 sm:text-sm lg:text-base">
 														Reservation Total
 													</td>
-													<th className="bg-accent py-0 pt-1 text-right  font-bold text-accent-content">
+													<th className="bg-secondary py-0 px-1 pt-1 text-right  font-bold text-secondary-content">
 														${totalCost.toFixed(2)}
 													</th>
 												</tr>
 											</tbody>
 										</table>
 									</div>
-									<div className="collapse-content p-0">
+									<div className="collapse-content">
 										<table className="ml-auto table">
 											<tbody>
 												{availabilityResponse.availDates?.map((date, i) => (
 													<tr key={i}>
-														<td className="bg-accent text-right text-accent-content">
+														<td className="bg-secondary text-right text-secondary-content">
 															{date || ''}
 														</td>
-														<th className="bg-accent text-right text-accent-content">
+														<th className="bg-secondary text-right text-secondary-content">
 															${availabilityResponse?.costs?.[i] || ''}
 														</th>
 													</tr>
 												))}
 												{taxTotal > 0 ? (
 													<tr>
-														<td className="bg-accent text-right text-accent-content">
+														<td className="bg-secondary text-right text-secondary-content">
 															Tax:
 														</td>
-														<th className="bg-accent text-right text-accent-content">
+														<th className="bg-secondary text-right text-secondary-content">
 															${taxTotal.toFixed(2)}
 														</th>
 													</tr>
@@ -94,36 +94,36 @@ export default function BookingBreakdown({
 								<div className=" w-full border-0 border-t-2">
 									<div
 										tabIndex={0}
-										className="collapse-arrow collapse justify-end text-accent-content"
+										className="collapse-arrow collapse justify-end text-secondary-content"
 									>
 										<input type="checkbox" />
 										<div className="collapse-title">
 											<table className="table">
 												<tbody>
 													<tr>
-														<td className=" bg-accent py-0 pt-1 text-right text-sm font-semibold uppercase text-accent-content lg:text-base">
+														<td className=" bg-secondary py-0 pt-1 text-right text-sm font-semibold uppercase text-secondary-content lg:text-base">
 															Deposit Total
 														</td>
-														<th className="bg-accent py-0 pt-1 text-right font-bold text-accent-content">
+														<th className="bg-secondary py-0 pt-1 text-right font-bold text-secondary-content">
 															${depositCost}
 														</th>
 													</tr>
 												</tbody>
 											</table>
 										</div>
-										<div className="collapse-content p-0">
+										<div className="collapse-content">
 											<table className="ml-auto table">
 												<tbody>
 													{availabilityResponse.deposit?.map((deposit, i) => (
 														<tr key={i}>
-															<td className="bg-accent text-right text-accent-content">
+															<td className="bg-secondary text-right text-secondary-content">
 																{deposit.name || ''}
 															</td>
-															<th className="bg-accent text-right text-accent-content">
+															<th className="bg-secondary text-right text-secondary-content">
 																${deposit.cost || ''}
 															</th>
 															{deposit.description && (
-																<th className="bg-accent text-accent-content">
+																<th className="bg-secondary text-secondary-content">
 																	<Modal id={`${deposit.name}${i}`}>
 																		<span className="uppercase text-primary-content underline">
 																			{deposit.name || ''}
@@ -153,12 +153,12 @@ export default function BookingBreakdown({
 								</div>
 							)}
 							<table className="table w-full border-0 border-t-2">
-								<tbody className="collapse m-1 cursor-default justify-end text-accent-content">
+								<tbody className="collapse m-1 cursor-default justify-end text-secondary-content">
 									<tr className="collapse-title w-auto !cursor-default justify-self-end p-0 pr-10">
-										<td className="bg-accent text-right font-semibold uppercase text-accent-content">
+										<td className="bg-secondary text-right font-semibold uppercase text-secondary-content">
 											Total Due
 										</td>
-										<th className="bg-accent text-right font-bold text-accent-content">
+										<th className="bg-secondary text-right font-bold text-secondary-content">
 											${(totalCost + depositCost).toFixed(2)}
 										</th>
 									</tr>
@@ -166,11 +166,13 @@ export default function BookingBreakdown({
 							</table>
 							{allCheckedCallback ? (
 								<div>
-									{' '}
 									{availabilityResponse.terms?.map((term, i) => (
-										<div key={i} className="form-control text-accent-content">
+										<div
+											key={i}
+											className="form-control text-secondary-content"
+										>
 											<label className="label cursor-pointer">
-												<span className="label-text text-accent-content">
+												<span className="label-text text-secondary-content">
 													I have read and accept the{' '}
 													<label
 														htmlFor={`${term.name}${i}`}
@@ -200,9 +202,9 @@ export default function BookingBreakdown({
 									))}
 									{availabilityResponse.cancellationCost &&
 									availabilityResponse.cancellationCost.cost ? (
-										<div className="form-control text-accent-content">
+										<div className="form-control text-secondary-content">
 											<label className="label cursor-pointer">
-												<span className="label-text text-accent-content">
+												<span className="label-text text-secondary-content">
 													I acknowledge that this booking has a cancellation
 													cost of ${getCancellationCost(availabilityResponse)}
 												</span>
@@ -216,7 +218,7 @@ export default function BookingBreakdown({
 										</div>
 									) : (
 										''
-									)}{' '}
+									)}
 								</div>
 							) : (
 								''

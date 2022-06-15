@@ -188,6 +188,7 @@ model ReservablePriceAdjustment {
   fri                                                Boolean                         @default(false)
   sat                                                Boolean                         @default(false)
   adjustment                                         Float?
+  minDays                                            Int?                            @default(1)
   from_ReservableAvailabilityInclude_priceAdjustment ReservableAvailabilityInclude[] @relation("ReservableAvailabilityInclude_priceAdjustment")
   from_Reservable_priceAdjustment                    Reservable[]                    @relation("Reservable_priceAdjustment")
 }

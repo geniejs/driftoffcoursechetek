@@ -59,7 +59,7 @@ export default function ReservationBreakdown({
 													</th>
 												</tr>
 											) : (
-												''
+												<tr></tr>
 											)}
 											{(reservation?.receipt?.depositCost || 0) > 0 ? (
 												<tr>
@@ -71,7 +71,7 @@ export default function ReservationBreakdown({
 													</th>
 												</tr>
 											) : (
-												''
+												<tr></tr>
 											)}
 										</tbody>
 									</table>
@@ -141,7 +141,7 @@ export default function ReservationBreakdown({
 																)}
 															</tr>
 														) : (
-															''
+															<tr key={i}></tr>
 														)
 												)}
 											</tbody>

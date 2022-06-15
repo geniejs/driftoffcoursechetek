@@ -1,13 +1,23 @@
 import { DocumentRenderer } from '@keystone-6/document-renderer';
 import type { PropsWithChildren, ReactElement } from 'react';
+import { useMemo } from 'react';
+import { useEffect } from 'react';
 import { useState } from 'react';
-import { IoManOutline } from 'react-icons/io5';
+import { IoAlertCircleOutline, IoManOutline } from 'react-icons/io5';
 import { Link } from '@remix-run/react';
 import type { ReservationsResponse } from '~/lib/reservations.db.server';
 import type { ReservablesData } from '~/routes/reservables';
-import { getDisplayDateRange, getReservableDates, getYMDStr } from '~/utils';
+import { AvailabilityResponse, getMinDaysForRange } from '~/utils';
+import {
+	getDisplayDateRange,
+	getReservableAvailabilityResponse,
+	getReservableDates,
+	getYMDStr,
+} from '~/utils';
 import Calendar from '../Calendar';
 import Carousel from '../Carousel';
+import NotAvailable from '../NotAvailable';
+import classNames from 'classnames';
 
 type ProductProps = {
 	reservable: ReservablesData['reservables'][0];
@@ -16,6 +26,8 @@ type ProductProps = {
 	simple?: boolean;
 	header?: ReactElement;
 	information?: ReactElement;
+	className?: string;
+	reverseMobile?: boolean;
 };
 export default function Product({
 	reservable,
@@ -25,17 +37,56 @@ export default function Product({
 	children,
 	header,
 	information,
+	className,
+	reverseMobile,
 }: PropsWithChildren<ProductProps>): ReactElement {
 	const [startDate, setStartDate] = useState<Date>();
 	const [endDate, setEndDate] = useState<Date>();
+	const [availResponse, setAvailResponse] =
+		useState<AvailabilityResponse | null>(null);
+	const [minDays, setMinDays] = useState(1);
+
+	const reservableDates = useMemo(
+		() =>
+			reservations
+				? getReservableDates(reservable, reservations)
+				: new Map<string, { cost: number; minDays: number }>(),
+		[reservable, reservations]
+	);
+	const clearSearchEvent = new Event('clearSearch');
+
+	useEffect(() => {
+		if (startDate && endDate) {
+			setMinDays(getMinDaysForRange(startDate, endDate, reservableDates));
+		}
+	}, [startDate, endDate]);
+
+	useEffect(() => {
+		if (startDate && endDate) {
+			setAvailResponse(
+				getReservableAvailabilityResponse(
+					startDate,
+					endDate,
+					reservableDates,
+					reservable
+				)
+			);
+		}
+	}, [endDate, reservable, reservableDates, startDate]);
+	const bgContentName = bg.includes('base') ? 'base' : bg;
 	return (
 		<div>
 			<section
-				className={`body-font card overflow-hidden border-2 border-${bg}-focus bg-${bg} bg-opacity-100 text-${bg}-content`}
+				className={`${className} body-font card overflow-hidden border-2 border-${bgContentName}-focus bg-${bg} bg-opacity-100 text-${bgContentName}-content`}
 			>
 				{header}
 				<div className="container mx-auto py-12 px-0 lg:py-12 lg:pl-12 lg:pr-6">
-					<div className="mx-auto flex flex-col-reverse flex-wrap lg:flex-row">
+					<div
+						className={classNames('mx-auto flex flex-wrap lg:flex-row', {
+							'flex-col-reverse': !reverseMobile,
+							'flex-col': reverseMobile,
+						})}
+					>
 						<div className="w-full px-4 lg:w-1/2 lg:pl-0 lg:pr-10">
 							<h2 className="title-font text-sm tracking-widest">
 								{reservable.make ? reservable.make + ' ' : ''}
@@ -57,8 +108,8 @@ export default function Product({
 									})}
 								</div>
 							)}
-							<div className="badge badge-lg mb-4 flex gap-1 py-4 text-lg">
-								<IoManOutline></IoManOutline>{' '}
+							<div className="badge badge-lg badge-secondary mb-4 flex gap-1 py-4 text-lg">
+								<IoManOutline></IoManOutline>
 								<span>Max {reservable.occupancyPersons} people</span>
 								<span className="text-sm">
 									({reservable.occupancyWeight}lbs)
@@ -114,7 +165,7 @@ export default function Product({
 													target="_blank"
 													rel="noreferrer"
 													href={`https://assets.geniecloud.xyz/rental/${file.file_filename}`}
-													className="btn btn-link p-0 text-primary-content"
+													className={`btn btn-link p-0 underline underline-offset-2 text-${bgContentName}-content`}
 												>
 													{file.name}
 												</a>
@@ -150,25 +201,60 @@ export default function Product({
 					{reservations && (
 						<div className="mt-4">
 							<Calendar
-								datesWithCost={getReservableDates(reservable, reservations)}
+								datesWithCost={reservableDates}
 								hasDeposit={(reservable?.deposit?.length || 0) > 0}
 								onDatesSet={(startDate, endDate) => {
 									setStartDate(startDate);
 									setEndDate(endDate);
 								}}
 							></Calendar>
-							{startDate && endDate && (
-								<div className="card fixed left-0 bottom-0 z-30 mx-auto my-0 w-full rounded-none bg-primary bg-opacity-70 shadow-xl">
+							{startDate && endDate && availResponse && (
+								<div className="card fixed left-0 bottom-0 z-30 mx-auto my-0 w-full rounded-none bg-primary bg-opacity-70 text-primary-content shadow-xl">
 									<div className="card-body">
-										<Link
-											to={`/booking/${reservable.id}?startDate=${getYMDStr(
-												startDate
-											)}&endDate=${getYMDStr(endDate)}`}
-											className="btn btn-accent btn-block mt-4 py-2 px-6 text-base md:text-lg "
-										>
-											Book Now for
-											{getDisplayDateRange(startDate, endDate)}
-										</Link>
+										{minDays > 1 ? (
+											<div className="alert alert-info shadow-lg">
+												<div>
+													<IoAlertCircleOutline />
+													<span>
+														Your current dates have a minimum booking time of{' '}
+														{minDays} days
+													</span>
+												</div>
+											</div>
+										) : undefined}
+										{availResponse.isAvail ? (
+											<Link
+												to={`/booking/${reservable.id}?startDate=${getYMDStr(
+													startDate
+												)}&endDate=${getYMDStr(endDate)}`}
+												className="min-h12 btn btn-accent btn-block mt-4 h-auto py-2 px-6 text-base md:text-lg"
+											>
+												Book Now for
+												{getDisplayDateRange(startDate, endDate)}
+											</Link>
+										) : (
+											<div className="card bg-secondary text-secondary-content ">
+												<div className="card-body">
+													<NotAvailable
+														minimal
+														availabilityResponse={availResponse}
+													></NotAvailable>
+												</div>
+												<div className="card-actions m-4 justify-end">
+													<button
+														onClick={() => {
+															document.dispatchEvent(clearSearchEvent);
+															setAvailResponse(null);
+															setEndDate(undefined);
+															setStartDate(undefined);
+														}}
+														className="btn btn-primary"
+													>
+														Clear Search
+													</button>
+												</div>
+											</div>
+										)}
 									</div>
 								</div>
 							)}

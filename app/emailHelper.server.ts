@@ -15,8 +15,9 @@ export const sendConfirmationEmail = async (
 	to: string,
 	confirmationParams: ConfirmationParams
 ) => {
-	sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 	try {
+		sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
+
 		await sgMail.send({
 			to,
 			bcc: 'reservations@driftoffcoursechetek.com',
@@ -26,10 +27,9 @@ export const sendConfirmationEmail = async (
 			html: reservationConfirmation(confirmationParams),
 		});
 	} catch (e) {
-		console.error(JSON.stringify(e));
+		console.error('sendgrid', e);
 		return;
 	}
-	console.log('email sent');
 };
 
 export const reservationConfirmation = ({
@@ -166,9 +166,6 @@ export const reservationConfirmation = ({
 
 							<!-- LOGO -->
 							<!-- Image text color should be opposite to background color. Set your url, image src, alt and title. Alt text should fit the image size. Real image size should be x2. URL format: http://domain.com/?utm_source={{Campaign-Source}}&utm_medium=email&utm_content=logo&utm_campaign={{Campaign-Name}} -->
-							<a target="_blank" style="text-decoration: none;" href="https://driftoffcoursechetek.com/"><img border="0" vspace="0" hspace="0" src="https://raw.githubusercontent.com/konsav/email-templates/master/images/logo-white.png" width="100" height="30" alt="Logo" title="Logo" style="
-				color: #000000;
-				font-size: 10px; margin: 0; padding: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; border: none; display: block;" /></a>
 
 						</td>
 					</tr>

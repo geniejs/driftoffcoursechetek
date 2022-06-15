@@ -3,6 +3,7 @@ import type {
 	ReservableDeposit,
 	ReservableTerm,
 	AddressStateType,
+	PrismaClient,
 } from '@prisma/client';
 import type { CarouselImage } from '~/components/Carousel';
 import type { DocumentRendererProps } from '@keystone-6/document-renderer';
@@ -27,6 +28,7 @@ export type ReservableResponse = Reservable & {
 			fri: boolean;
 			sat: boolean;
 			adjustment: number | null;
+			minDays: number | null;
 		}[];
 	}[];
 	availabilityExclude?: { startDate: string; endDate: string }[];
@@ -45,6 +47,7 @@ export type ReservableResponse = Reservable & {
 		fri: boolean;
 		sat: boolean;
 		adjustment: number | null;
+		minDays: number | null;
 	}[];
 	files?: {
 		id: string;
@@ -102,6 +105,7 @@ const reservableInclude = {
 					fri: true,
 					sat: true,
 					adjustment: true,
+					minDays: true,
 				},
 			},
 		},
@@ -136,6 +140,7 @@ const reservableInclude = {
 			fri: true,
 			sat: true,
 			adjustment: true,
+			minDays: true,
 		},
 	},
 	files: { select: { id: true, name: true, file_filename: true } },
@@ -157,23 +162,45 @@ const reservableInclude = {
 	},
 };
 
-export const getReservables = async (): Promise<ReservableResponse[]> => {
-	const response = (await getDB().reservable.findMany({
+export const getReservables = async (
+	ids?: string[]
+): Promise<ReservableResponse[]> => {
+	const db = getDB() as PrismaClient;
+	let response = (await db.reservable.findMany({
+		where: ids
+			? {
+					id: {
+						in: ids,
+					},
+			  }
+			: undefined,
 		include: {
 			...reservableInclude,
 		},
 	})) as unknown as ReservableResponse[];
+	response = response.filter(
+		(r) =>
+			r.isActive ||
+			process.env.GENIE_ENV === 'development' ||
+			process.env.GENIE_ENV === 'stage'
+	);
 	return response;
 };
 export const getReservable = async (
 	id?: string
-): Promise<ReservableResponse> => {
-	const response = (await getDB().reservable.findFirst({
+): Promise<ReservableResponse | undefined> => {
+	let response = (await getDB().reservable.findFirst({
 		where: {
 			id: id,
 		},
 		include: reservableInclude,
-	})) as unknown as ReservableResponse;
+	})) as unknown as ReservableResponse | undefined;
+	response =
+		response?.isActive ||
+		process.env.GENIE_ENV === 'development' ||
+		process.env.GENIE_ENV === 'stage'
+			? response
+			: undefined;
 
 	return response;
 };

@@ -6,3 +6,23 @@
 	color: hsl(var(--bc) / .3) ;
 	background: repeating-linear-gradient(  45deg,  hsl(var(--b1)),  hsl(var(--b1)) 10px,  hsl(var(--b3)) 10px, hsl(var(--b3)) 20px);
 }
+
+@layer base {
+
+  .privacy h1 {
+    @apply text-2xl;
+  }
+  .privacy h2 {
+    @apply text-xl;
+  }
+  .privacy h3 {
+    @apply text-lg;
+  }
+  .privacy ul {
+  	@apply list-disc list-inside;
+
+  }
+  .privacy ul p {
+		display: inline;
+	}
+}
