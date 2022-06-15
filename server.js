@@ -17,12 +17,13 @@ export async function onRequest(context) {
 			return response;
 		}
 		const url = new URL(request.url);
+		let allowCache = false;
+
 		allowCache = allowCache || url.pathname.includes('/images/');
 		allowCache = allowCache || url.pathname.includes('favicon');
 		allowCache = allowCache || url.pathname.includes('/build');
 		if (!allowCache && process.env.GENIE_ENV !== 'stage') {
 			let hasSearch = url.search ? url.search.length > 1 : false;
-			let allowCache = false;
 			if (!hasSearch) {
 				allowCache = allowCache || url.pathname.length <= 1;
 				allowCache = allowCache || url.pathname.endsWith('/availability');
