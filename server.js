@@ -11,7 +11,7 @@ export async function onRequest(context) {
 	const cache = requestCache;
 	const request = context.request;
 	let response = await cache.match(request);
-	if (!response) {
+	if (!response || !response.ok) {
 		response = await handleRequest(context);
 		if (process.env.GENIE_ENV === 'development') {
 			return response;
