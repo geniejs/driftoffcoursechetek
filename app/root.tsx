@@ -64,6 +64,7 @@ export let meta: MetaFunction = () => {
 		description: 'Chetek, WI Boat Rental',
 	};
 };
+
 export default function App() {
 	getFirebaseClient();
 	return (
@@ -209,6 +210,11 @@ function Document({
 					<RouteChangeAnnouncement />
 					<ScrollRestoration />
 					<Scripts />
+					<script
+						defer
+						src="https://static.cloudflareinsights.com/beacon.min.js"
+						data-cf-beacon='{"token": "3e6f541b4246450bab20c532c064a054"}'
+					></script>
 					{process.env.NODE_ENV === 'development' && <LiveReload />}
 				</body>
 			</html>
